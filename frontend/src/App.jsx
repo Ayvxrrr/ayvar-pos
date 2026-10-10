@@ -15,6 +15,9 @@ import CustomersPage from "./pages/CustomersPage";
 import CustomerHistoryPage from "./pages/CustomerHistoryPage";
 import DashboardHomePage from "./pages/DashboardHomePage";
 import ReportsPage from "./pages/ReportsPage";
+import UsersPage from "./pages/UsersPage";
+import BusinessSettingsPage from "./pages/BusinessSettingsPage";
+import AuditPage from "./pages/AuditPage";
 
 function Loading() {
   return <div className="flex min-h-screen items-center justify-center bg-slate-950 text-slate-300">Verificando sesión...</div>;
@@ -55,8 +58,10 @@ export default function App() {
         <Route path="clientes/:id" element={<RoleRoute allowed={sales}><CustomerHistoryPage /></RoleRoute>} />
         <Route path="reportes" element={<RoleRoute allowed={admin}><ReportsPage /></RoleRoute>} />
 
-        <Route path="usuarios" element={<RoleRoute allowed={admin}><ModulePage title="Usuarios" description="Próximamente: administración de trabajadores." /></RoleRoute>} />
-        <Route path="configuracion" element={<RoleRoute allowed={admin}><ModulePage title="Configuración" description="Próximamente: ajustes del negocio." /></RoleRoute>} />
+        <Route path="usuarios" element={<RoleRoute allowed={admin}><UsersPage /></RoleRoute>} />
+        <Route path="configuracion" element={<RoleRoute allowed={admin}><BusinessSettingsPage /></RoleRoute>} />
+        <Route path="auditoria" element={<RoleRoute allowed={admin}><AuditPage /></RoleRoute>} />
+
         <Route path="sin-acceso" element={<AccessDeniedPage />} />
       </Route>
     </Route>

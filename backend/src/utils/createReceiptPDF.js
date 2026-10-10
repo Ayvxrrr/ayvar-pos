@@ -53,6 +53,15 @@ export function createReceiptPDF({ sale, business, output }) {
 
   pdf.font("Helvetica-Bold").fontSize(17).fillColor(navy)
     .text(String(business.name || "Negocio"), 44, pdf.y, { width: maxX });
+  if (business.address) {
+    pdf.font("Helvetica").fontSize(9).fillColor(muted).text(String(business.address), 44, pdf.y, { width: maxX });
+  }
+  if (business.phone) {
+    pdf.font("Helvetica").fontSize(9).fillColor(muted).text(`Teléfono: ${business.phone}`, 44, pdf.y, { width: maxX });
+  }
+  if (business.taxId) {
+    pdf.font("Helvetica").fontSize(9).fillColor(muted).text(`RUC declarado: ${business.taxId}`, 44, pdf.y, { width: maxX });
+  }
   pdf.moveDown(0.5);
   pdf.font("Helvetica-Bold").fontSize(9).fillColor("#b45309")
     .text("NO ES BOLETA NI FACTURA ELECTRÓNICA. NO VÁLIDO COMO COMPROBANTE SUNAT.", { width: maxX });
@@ -95,7 +104,12 @@ export function createReceiptPDF({ sale, business, output }) {
   pdf.moveDown(0.5);
   pdf.font("Helvetica-Bold").fontSize(17).fillColor(navy)
     .text(`TOTAL: ${soles(sale.totalCents)}`, 44, pdf.y, { width: maxX, align: "right" });
-  pdf.moveDown(1.5);
+  pdf.moveDown(1.0);
+  if (business.receiptFooter) {
+    pdf.font("Helvetica").fontSize(10).fillColor(navy)
+      .text(String(business.receiptFooter), 44, pdf.y, { width: maxX, align: "center" });
+    pdf.moveDown(0.5);
+  }
   pdf.font("Helvetica").fontSize(9).fillColor(muted)
     .text("Documento informativo generado a partir de una venta registrada en Ayvar POS.", { align: "center", width: maxX });
   pdf.end();
