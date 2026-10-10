@@ -1,0 +1,12 @@
+# No enviar credenciales ni archivos locales al compilador de Cloud Run
+.git/
+.env
+.env.*
+secrets/
+node_modules/
+tests/
+coverage/
+*.log
+*firebase-adminsdk*.json
+firebase-service-account.json
+.DS_Store

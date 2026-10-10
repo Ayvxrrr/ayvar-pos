@@ -1,28 +1,26 @@
-
+/**
+ * Administración Firebase para desarrollo local y Cloud Run.
+ * En producción usa identidad del servicio (ADC); NO claves JSON subidas.
+ */
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-
-import { initializeApp, cert } from "firebase-admin/app";
+import { applicationDefault, cert, initializeApp, getApps } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
 
-const currentDir = path.dirname(
-  fileURLToPath(import.meta.url)
-);
+const projectId = process.env.FIREBASE_PROJECT_ID || process.env.GOOGLE_CLOUD_PROJECT || "ayvar-pos";
 
-const credentialsPath = path.resolve(
-  currentDir,
-  "../../secrets/firebase-service-account.json"
-);
+function credentials() {
+  if (process.env.NODE_ENV === "production") {
+    return applicationDefault();
+  }
+  // Conserva el JSON únicamente en tu máquina local.
+  const directory = path.dirname(fileURLToPath(import.meta.url));
+  const jsonPath = path.resolve(directory, "../../secrets/firebase-service-account.json");
+  return cert(JSON.parse(readFileSync(jsonPath, "utf8")));
+}
 
-const serviceAccount = JSON.parse(
-  readFileSync(credentialsPath, "utf8")
-);
-
-const app = initializeApp({
-  credential: cert(serviceAccount),
-});
-
-export const adminAuth = getAuth(app);
-export const db = getFirestore(app);
+const firebaseApp = getApps()[0] || initializeApp({ credential: credentials(), projectId });
+export const db = getFirestore(firebaseApp);
+export const adminAuth = getAuth(firebaseApp);

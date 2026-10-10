@@ -1,6 +1,6 @@
 import { auth } from "../firebase";
 
-const ROOT = import.meta.env.VITE_API_URL || "http://localhost:4000";
+const ROOT = import.meta.env.PROD ? "" : (import.meta.env.VITE_API_URL || "http://localhost:4000");
 
 export async function api(path, { method = "GET", body } = {}) {
   const user = auth.currentUser;

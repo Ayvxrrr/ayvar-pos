@@ -6,8 +6,11 @@ import { auth } from "../firebase";
 
 const AuthContext = createContext(null);
 
-const API_URL =
-  import.meta.env.VITE_API_URL || "http://localhost:4000";
+// En producción Firebase Hosting redirige /api/** a Cloud Run.
+// En desarrollo se utiliza el backend de Express.
+const API_ROOT = import.meta.env.PROD
+  ? ""
+  : (import.meta.env.VITE_API_URL || "http://localhost:4000");
 
 export function AuthProvider({ children }) {
   const [session, setSession] = useState(null);
@@ -35,7 +38,7 @@ export function AuthProvider({ children }) {
           const token = await firebaseUser.getIdToken();
 
           const response = await fetch(
-            `${API_URL}/api/me`,
+            `${API_ROOT}/api/me`,
             {
               headers: {
                 Authorization: `Bearer ${token}`,

@@ -17,12 +17,16 @@ import helmet from "helmet";
 import teamRouter from "./routes/team.js";
 import settingsRouter from "./routes/settings.js";
 import auditRouter from "./routes/audit.js";
+import { validateProductionConfig, corsSettings } from "./config/productionSecurity.js";
+import { rateLimit } from "express-rate-limit";
 
 const app = express();
+validateProductionConfig();
 app.disable("x-powered-by");
 app.use(helmet());
 const PORT = Number(process.env.PORT || 4000);
-app.use(cors({ origin: process.env.FRONTEND_URL || "http://localhost:5173" }));
+app.set("trust proxy", 1);
+app.use(cors(corsSettings()));
 app.use(express.json({ limit: "50kb" }));
 
 app.get("/api/health", (req, res) => res.json({
@@ -44,6 +48,18 @@ app.get("/api/me", requireAuth, async (req, res, next) => {
 
 app.get("/api/admin/check", requireAuth, requireRole("admin"), (req, res) =>
   res.json({ success: true, message: "Acceso de administrador autorizado" }));
+app.use("/api", (req, res, next) => {
+  res.set("Cache-Control", "no-store");
+  next();
+});
+
+app.use("/api", rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 600,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  message: { error: "Demasiadas peticiones. Intenta más tarde." },
+}));
 
 app.use("/api/categories", requireAuth, requireBusinessActive, categoriesRouter);
 app.use("/api/products", requireAuth, requireBusinessActive, productsRouter);

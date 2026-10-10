@@ -1,6 +1,6 @@
 import { auth } from "../firebase";
 
-const ROOT = import.meta.env.VITE_API_URL || "http://localhost:4000";
+const ROOT = import.meta.env.PROD ? "" : (import.meta.env.VITE_API_URL || "http://localhost:4000");
 
 export async function downloadSaleReceipt(saleId) {
   if (!auth.currentUser) throw new Error("Inicia sesión nuevamente.");
@@ -20,6 +20,6 @@ export async function downloadSaleReceipt(saleId) {
   document.body.append(anchor);
   anchor.click();
   anchor.remove();
-  // Tiempo suficiente para que el navegador tome la descarga.
+  
   setTimeout(() => URL.revokeObjectURL(url), 60_000);
 }

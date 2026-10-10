@@ -1,7 +1,7 @@
 import { auth } from "../firebase";
 import { api } from "./api";
 
-const ROOT = import.meta.env.VITE_API_URL || "http://localhost:4000";
+const ROOT = import.meta.env.PROD ? "" : (import.meta.env.VITE_API_URL || "http://localhost:4000");
 
 export function reportQuery(from, to) {
   return new URLSearchParams({ from, to }).toString();

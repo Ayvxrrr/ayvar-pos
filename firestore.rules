@@ -1,0 +1,7 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Toda operación empresarial autorizada se realiza en Express con Admin SDK.
+    match /{document=**} { allow read, write: if false; }
+  }
+}
