@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, Printer, ReceiptText, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Printer, ReceiptText, CheckCircle2, Download } from "lucide-react";
 import { api, moneyFromCents } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import Notice from "../components/ui/Notice";
+import { downloadSaleReceipt } from "../services/receipt";
 import "../styles/receipt.css";
 
 const paymentLabels = {
@@ -16,6 +17,14 @@ export default function SaleDetailPage() {
   const [sale, setSale] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [downloading, setDownloading] = useState(false);
+
+  async function handleDownload() {
+    setDownloading(true); setError("");
+    try { await downloadSaleReceipt(id); }
+    catch (err) { setError(err.message); }
+    finally { setDownloading(false); }
+  }
 
   useEffect(() => {
     let active = true;
@@ -36,9 +45,11 @@ export default function SaleDetailPage() {
         <Link to="/panel/ventas/historial" className="inline-flex items-center gap-2 text-slate-300 hover:text-white"><ArrowLeft size={18}/> Historial</Link>
         <div className="flex gap-3">
           <Link to="/panel/ventas" className="rounded-xl border border-slate-700 px-4 py-2.5 text-sm hover:bg-slate-800">Nueva venta</Link>
+          <button type="button" disabled={downloading} onClick={handleDownload} className="inline-flex items-center gap-2 rounded-xl border border-slate-700 px-4 py-2.5 text-sm font-medium hover:bg-slate-800 disabled:opacity-50"><Download size={17}/> {downloading ? "Descargando..." : "Descargar PDF"}</button>
           <button type="button" onClick={() => window.print()} className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium hover:bg-blue-500"><Printer size={17}/> Imprimir ticket</button>
         </div>
       </div>
+      <Notice message={error}/>
       <section className="rounded-2xl border border-slate-800 bg-slate-900 p-6 md:p-8">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h1 className="flex items-center gap-2 text-2xl font-bold"><ReceiptText className="text-blue-400"/> Detalle de venta</h1>
@@ -50,6 +61,7 @@ export default function SaleDetailPage() {
           <div><p className="text-slate-500">Fecha</p><p className="font-medium">{sale.createdAt ? new Date(sale.createdAt).toLocaleString("es-PE") : "—"}</p></div>
           <div><p className="text-slate-500">Negocio</p><p className="font-medium">{session.business.name}</p></div>
           <div><p className="text-slate-500">Cajero</p><p className="font-medium">{sale.cashierName}</p></div>
+          <div><p className="text-slate-500">Cliente</p><p className="font-medium">{sale.customerName || "Consumidor final"}</p>{sale.customerDocumentNumber && <p className="text-xs text-slate-400">{sale.customerDocumentType?.toUpperCase()} {sale.customerDocumentNumber}</p>}</div>
         </div>
         <div className="mt-7 overflow-x-auto rounded-xl border border-slate-800">
           <table className="w-full min-w-[490px] text-left text-sm">
@@ -77,6 +89,7 @@ export default function SaleDetailPage() {
         <p>Operación: {sale.id.slice(0, 8).toUpperCase()}</p>
         <p>Fecha: {sale.createdAt ? new Date(sale.createdAt).toLocaleString("es-PE") : "—"}</p>
         <p>Cajero: {sale.cashierName}</p>
+        <p>Cliente: {sale.customerName || "Consumidor final"}</p>
         <hr/>
         {(sale.items || []).map(item => <div key={item.sku} className="sale-print-item">
           <p>{item.name} ({item.sku})</p>

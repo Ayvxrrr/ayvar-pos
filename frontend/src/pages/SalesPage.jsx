@@ -29,10 +29,11 @@ function loadDraft(storageKey) {
         requestId: saved.requestId,
         paymentMethod: methods.some(m => m.id === saved.paymentMethod) ? saved.paymentMethod : "cash",
         cashReceived: typeof saved.cashReceived === "string" ? saved.cashReceived : "",
+        customerId: typeof saved.customerId === "string" ? saved.customerId : "",
       };
     }
   } catch { /* Borrador antiguo o inválido */ }
-  return { cart: [], requestId: newKey(), paymentMethod: "cash", cashReceived: "" };
+  return { cart: [], requestId: newKey(), paymentMethod: "cash", cashReceived: "", customerId: "" };
 }
 
 export default function SalesPage() {
@@ -44,6 +45,8 @@ export default function SalesPage() {
   const [requestId, setRequestId] = useState(initialDraft.requestId);
   const [paymentMethod, setPaymentMethod] = useState(initialDraft.paymentMethod);
   const [cashReceived, setCashReceived] = useState(initialDraft.cashReceived);
+  const [customerId, setCustomerId] = useState(initialDraft.customerId);
+  const [customers, setCustomers] = useState([]);
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [search, setSearch] = useState("");
@@ -56,16 +59,17 @@ export default function SalesPage() {
 
   useEffect(() => {
     localStorage.setItem(storageKey, JSON.stringify({
-      cart, requestId, paymentMethod, cashReceived,
+      cart, requestId, paymentMethod, cashReceived, customerId,
     }));
-  }, [cart, requestId, paymentMethod, cashReceived, storageKey]);
+  }, [cart, requestId, paymentMethod, cashReceived, customerId, storageKey]);
 
   async function reload() {
-    const [productsResult, categoriesResult] = await Promise.all([
-      api("/api/products"), api("/api/categories"),
+    const [productsResult, categoriesResult, customersResult] = await Promise.all([
+      api("/api/products"), api("/api/categories"), api("/api/customers"),
     ]);
     setProducts(productsResult.products.filter(p => p.active));
     setCategories(categoriesResult.categories.filter(c => c.active));
+    setCustomers(customersResult.customers.filter(c => c.active));
   }
   useEffect(() => {
     reload().catch(e => setError(e.message)).finally(() => setLoading(false));
@@ -132,6 +136,9 @@ export default function SalesPage() {
   async function checkout() {
     if (inFlight.current || busy) return;
     setError(""); setSuccess("");
+    if (customerId && !customers.some(c => c.id === customerId)) {
+      setError("El cliente seleccionado no está disponible. Actualiza el listado."); return;
+    }
     if (cart.length === 0 || missingProduct) {
       setError("Agrega productos válidos antes de cobrar."); return;
     }
@@ -158,11 +165,13 @@ export default function SalesPage() {
           expectedTotalCents: totalCents,
           paymentMethod,
           receivedCents: paymentMethod === "cash" ? amount : null,
+          customerId: customerId || null,
         },
       });
       setCart([]);
       setCashReceived("");
       setPaymentMethod("cash");
+      setCustomerId("");
       setRequestId(newKey());
       localStorage.removeItem(storageKey);
       setSuccess(result.repeated
@@ -265,6 +274,18 @@ export default function SalesPage() {
           <div className="border-t border-slate-800 pt-4">
             <div className="flex items-center justify-between"><span className="text-slate-400">Total de venta</span><span className="text-2xl font-bold text-emerald-400">{moneyFromCents(totalCents)}</span></div>
             <p className="mt-1 text-xs text-slate-500">Los importes definitivos se verificarán en el servidor.</p>
+          </div>
+          <div className="mt-5 space-y-2">
+            <label htmlFor="sale-customer" className="text-sm font-medium">Cliente (opcional)</label>
+            <select id="sale-customer" value={customerId} disabled={busy}
+              onChange={event => { setCustomerId(event.target.value); resetOperation(); }}
+              className={inputClass}>
+              <option value="">Consumidor final (sin identificar)</option>
+              {customers.map(customer => <option key={customer.id} value={customer.id}>
+                {customer.name}{customer.documentNumber ? ` · ${customer.documentNumber}` : ""}
+              </option>)}
+            </select>
+            <Link to="/panel/clientes" className="inline-block text-xs text-blue-400 hover:text-blue-300">Gestionar clientes</Link>
           </div>
           <div className="mt-5 space-y-3">
             <p className="text-sm font-medium">Método de pago</p>

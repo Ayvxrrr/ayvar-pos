@@ -30,7 +30,7 @@ export default function SalesHistoryPage() {
 
   useEffect(() => { reload(); }, []);
   const filtered = useMemo(() => sales.filter(sale => {
-    const terms = [sale.id, sale.cashierName, sale.paymentMethod,
+    const terms = [sale.id, sale.cashierName, sale.customerName, sale.paymentMethod,
       ...(sale.items || []).flatMap(item => [item.name, item.sku])]
       .join(" ").toLocaleLowerCase("es");
     return terms.includes(search.toLocaleLowerCase("es"));
@@ -49,22 +49,22 @@ export default function SalesHistoryPage() {
           <div className="flex flex-wrap items-center gap-3">
             <label className="flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-800 px-3 text-slate-400">
               <Search size={17}/>
-              <input aria-label="Buscar ventas" value={search} onChange={e => setSearch(e.target.value)} placeholder="ID, cajero, producto, SKU" className="w-48 bg-transparent py-2.5 text-sm text-white outline-none"/>
+              <input aria-label="Buscar ventas" value={search} onChange={e => setSearch(e.target.value)} placeholder="ID, cliente, producto" className="w-48 bg-transparent py-2.5 text-sm text-white outline-none"/>
             </label>
             <button type="button" disabled={loading} onClick={reload} aria-label="Actualizar historial" className="rounded-xl border border-slate-700 p-3 text-slate-300 hover:bg-slate-800"><RefreshCw size={17}/></button>
           </div>
         </div>
         {loading ? <p className="p-6 text-slate-400">Cargando historial...</p> : filtered.length === 0
           ? <p className="p-8 text-center text-slate-400">Todavía no existen ventas para mostrar.</p>
-          : <div className="overflow-x-auto"><table className="w-full min-w-[830px] text-left text-sm">
+          : <div className="overflow-x-auto"><table className="w-full min-w-[980px] text-left text-sm">
             <thead className="bg-slate-800/50 text-slate-400"><tr>
-              <th className="p-4">Venta</th><th className="p-4">Fecha</th><th className="p-4">Cajero</th>
+              <th className="p-4">Venta</th><th className="p-4">Fecha</th><th className="p-4">Cajero</th><th className="p-4">Cliente</th>
               <th className="p-4">Productos</th><th className="p-4">Pago</th><th className="p-4">Total</th><th className="p-4">Detalle</th>
             </tr></thead>
             <tbody>{filtered.map(sale => <tr key={sale.id} className="border-t border-slate-800 hover:bg-slate-800/30">
               <td className="p-4 font-semibold text-blue-400">#{sale.id.slice(0, 8).toUpperCase()}</td>
               <td className="p-4 text-slate-300">{sale.createdAt ? new Date(sale.createdAt).toLocaleString("es-PE") : "—"}</td>
-              <td className="p-4">{sale.cashierName || "—"}</td>
+              <td className="p-4">{sale.cashierName || "—"}</td><td className="p-4">{sale.customerName || "Consumidor final"}</td>
               <td className="p-4">{sale.itemCount} und.</td>
               <td className="p-4 text-slate-300">{paymentLabels[sale.paymentMethod] || sale.paymentMethod}</td>
               <td className="p-4 font-semibold text-emerald-400">{moneyFromCents(sale.totalCents)}</td>

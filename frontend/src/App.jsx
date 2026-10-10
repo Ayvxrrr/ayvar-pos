@@ -11,6 +11,8 @@ import InventoryPage from "./pages/InventoryPage";
 import SalesPage from "./pages/SalesPage";
 import SalesHistoryPage from "./pages/SalesHistoryPage";
 import SaleDetailPage from "./pages/SaleDetailPage";
+import CustomersPage from "./pages/CustomersPage";
+import CustomerHistoryPage from "./pages/CustomerHistoryPage";
 
 function Loading() {
   return <div className="flex min-h-screen items-center justify-center bg-slate-950 text-slate-300">Verificando sesión...</div>;
@@ -47,7 +49,8 @@ export default function App() {
         <Route path="productos" element={<RoleRoute allowed={all}><ProductsPage /></RoleRoute>} />
         <Route path="categorias" element={<RoleRoute allowed={admin}><CategoriesPage /></RoleRoute>} />
         <Route path="inventario" element={<RoleRoute allowed={inventory}><InventoryPage /></RoleRoute>} />
-        <Route path="clientes" element={<RoleRoute allowed={sales}><ModulePage title="Clientes" description="Próximamente: clientes e historial comercial." /></RoleRoute>} />
+        <Route path="clientes" element={<RoleRoute allowed={sales}><CustomersPage /></RoleRoute>} />
+        <Route path="clientes/:id" element={<RoleRoute allowed={sales}><CustomerHistoryPage /></RoleRoute>} />
         <Route path="reportes" element={<RoleRoute allowed={admin}><ModulePage title="Reportes" description="Próximamente: estadísticas reales de ventas." /></RoleRoute>} />
         <Route path="usuarios" element={<RoleRoute allowed={admin}><ModulePage title="Usuarios" description="Próximamente: administración de trabajadores." /></RoleRoute>} />
         <Route path="configuracion" element={<RoleRoute allowed={admin}><ModulePage title="Configuración" description="Próximamente: ajustes del negocio." /></RoleRoute>} />

@@ -22,12 +22,14 @@ const checkoutSchema = z.object({
   expectedTotalCents: centsSchema,
   paymentMethod: z.enum(["cash", "card", "transfer", "yape"]),
   receivedCents: centsSchema.nullish(),
+  customerId: z.string().regex(/^[A-Za-z0-9]{20}$/).nullish(),
 }).strict();
 
 const businessRef = req => db.collection("businesses").doc(req.account.businessId);
 const salesRef = req => businessRef(req).collection("sales");
 const productsRef = req => businessRef(req).collection("products");
 const movementsRef = req => businessRef(req).collection("inventoryMovements");
+const customersRef = req => businessRef(req).collection("customers");
 
 function canonicalInput(input) {
   const sortedItems = [...input.items].sort((a, b) => a.sku.localeCompare(b.sku));
@@ -36,6 +38,7 @@ function canonicalInput(input) {
     expectedTotalCents: input.expectedTotalCents,
     paymentMethod: input.paymentMethod,
     receivedCents: input.paymentMethod === "cash" ? input.receivedCents : null,
+    ...(input.customerId ? { customerId: input.customerId } : {}),
   });
 }
 
@@ -63,6 +66,8 @@ router.post("/", requireRole("admin", "cashier"), asyncRoute(async (req, res) =>
   const productRefs = input.items.map(item => productsRef(req).doc(item.sku));
   // IDs creados fuera del callback; una transacción puede ejecutarse varias veces.
   const movementRefs = input.items.map(() => movementsRef(req).doc());
+  const customerRef = input.customerId ? customersRef(req).doc(input.customerId) : null;
+  const customerSaleRef = customerRef?.collection("sales").doc(input.requestId);
 
   const outcome = await db.runTransaction(async (tx) => {
     // Orden obligatorio: TODAS las lecturas antes de la primera escritura.
@@ -74,10 +79,17 @@ router.post("/", requireRole("admin", "cashier"), asyncRoute(async (req, res) =>
       return "existing";
     }
 
-    const [businessSnap, ...productSnaps] = await Promise.all([
+    const [businessSnap, ...otherSnaps] = await Promise.all([
       tx.get(businessRef(req)),
       ...productRefs.map(ref => tx.get(ref)),
+      ...(customerRef ? [tx.get(customerRef)] : []),
     ]);
+    const productSnaps = otherSnaps.slice(0, productRefs.length);
+    const customerSnap = customerRef ? otherSnaps[otherSnaps.length - 1] : null;
+    if (customerRef && (!customerSnap.exists || customerSnap.data().active !== true)) {
+      throw new HttpError(409, "El cliente seleccionado ya no está disponible.");
+    }
+    const customer = customerSnap?.data() || null;
     if (!businessSnap.exists || businessSnap.data().active !== true) {
       throw new HttpError(403, "El negocio no está disponible.");
     }
@@ -140,9 +152,21 @@ router.post("/", requireRole("admin", "cashier"), asyncRoute(async (req, res) =>
       changeCents,
       userId: req.account.uid,
       cashierName: req.account.name || req.account.email || "Cajero",
+      customerId: customerRef?.id || null,
+      customerName: customer?.name || "Consumidor final",
+      customerDocumentType: customer?.documentType || "none",
+      customerDocumentNumber: customer?.documentNumber || "",
       requestFingerprint: fingerprint,
       createdAt: FieldValue.serverTimestamp(),
     });
+    if (customerSaleRef) {
+      tx.create(customerSaleRef, {
+        saleId: input.requestId, customerId: customerRef.id, totalCents,
+        itemCount: units, paymentMethod: input.paymentMethod,
+        cashierName: req.account.name || req.account.email || "Cajero",
+        createdAt: FieldValue.serverTimestamp(),
+      });
+    }
     lines.forEach((line, i) => {
       tx.update(productRefs[i], {
         stock: line.newStock,

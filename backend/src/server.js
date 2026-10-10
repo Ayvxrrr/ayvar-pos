@@ -9,6 +9,8 @@ import categoriesRouter from "./routes/categories.js";
 import productsRouter from "./routes/products.js";
 import inventoryRouter from "./routes/inventory.js";
 import salesRouter from "./routes/sales.js";
+import customersRouter from "./routes/customers.js";
+import receiptsRouter from "./routes/receipts.js";
 import { requireBusinessActive } from "./utils/requireBusinessActive.js";
 
 const app = express();
@@ -39,6 +41,8 @@ app.get("/api/admin/check", requireAuth, requireRole("admin"), (req, res) =>
 app.use("/api/categories", requireAuth, requireBusinessActive, categoriesRouter);
 app.use("/api/products", requireAuth, requireBusinessActive, productsRouter);
 app.use("/api/inventory", requireAuth, requireBusinessActive, inventoryRouter);
+app.use("/api/customers", requireAuth, requireBusinessActive, customersRouter);
+app.use("/api/sales", requireAuth, requireBusinessActive, receiptsRouter);
 app.use("/api/sales", requireAuth, requireBusinessActive, salesRouter);
 
 app.use((err, req, res, next) => {
