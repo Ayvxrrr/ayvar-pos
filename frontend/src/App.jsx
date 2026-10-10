@@ -8,6 +8,9 @@ import AccessDeniedPage from "./pages/AccessDeniedPage";
 import CategoriesPage from "./pages/CategoriesPage";
 import ProductsPage from "./pages/ProductsPage";
 import InventoryPage from "./pages/InventoryPage";
+import SalesPage from "./pages/SalesPage";
+import SalesHistoryPage from "./pages/SalesHistoryPage";
+import SaleDetailPage from "./pages/SaleDetailPage";
 
 function Loading() {
   return <div className="flex min-h-screen items-center justify-center bg-slate-950 text-slate-300">Verificando sesión...</div>;
@@ -38,7 +41,9 @@ export default function App() {
     <Route element={<RequireAuth />}>
       <Route path="/panel" element={<DashboardLayout />}>
         <Route index element={<DashboardPage />} />
-        <Route path="ventas" element={<RoleRoute allowed={sales}><ModulePage title="Gestión de ventas" description="En la siguiente fase implementaremos la caja y los pagos." /></RoleRoute>} />
+        <Route path="ventas" element={<RoleRoute allowed={sales}><SalesPage /></RoleRoute>} />
+        <Route path="ventas/historial" element={<RoleRoute allowed={sales}><SalesHistoryPage /></RoleRoute>} />
+        <Route path="ventas/:id" element={<RoleRoute allowed={sales}><SaleDetailPage /></RoleRoute>} />
         <Route path="productos" element={<RoleRoute allowed={all}><ProductsPage /></RoleRoute>} />
         <Route path="categorias" element={<RoleRoute allowed={admin}><CategoriesPage /></RoleRoute>} />
         <Route path="inventario" element={<RoleRoute allowed={inventory}><InventoryPage /></RoleRoute>} />

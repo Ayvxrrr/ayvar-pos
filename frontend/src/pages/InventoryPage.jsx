@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
 import { Boxes, ArrowDownCircle, ArrowUpCircle } from "lucide-react";
 import { api } from "../services/api";
+import { Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import PageHeader from "../components/ui/PageHeader";
 import Notice from "../components/ui/Notice";
 
 const inputClass = "mt-2 w-full rounded-xl border border-slate-700 bg-slate-800 p-3 outline-none focus:border-blue-500";
 export default function InventoryPage() {
+  const { session } = useAuth();
   const [products, setProducts] = useState([]);
   const [movements, setMovements] = useState([]);
   const [form, setForm] = useState({ sku: "", type: "in", quantity: "1", note: "" });
@@ -74,8 +77,8 @@ export default function InventoryPage() {
             <tbody>{movements.map(m=><tr key={m.id} className="border-t border-slate-800">
               <td className="p-4 text-slate-400">{m.createdAt ? new Date(m.createdAt).toLocaleString("es-PE") : "—"}</td>
               <td className="p-4">{m.sku}</td>
-              <td className="p-4"><span className="flex items-center gap-1">{m.type === "out" ? <ArrowDownCircle size={16} className="text-red-400"/> : <ArrowUpCircle size={16} className="text-emerald-400"/>}{m.type === "initial" ? "Inicial" : m.type === "in" ? "Entrada" : "Salida"}</span></td>
-              <td className="p-4">{m.quantity}</td><td className="p-4 font-semibold">{m.newStock}</td><td className="p-4 text-slate-400">{m.note}</td>
+              <td className="p-4"><span className="flex items-center gap-1">{["out", "sale"].includes(m.type) ? <ArrowDownCircle size={16} className="text-red-400"/> : <ArrowUpCircle size={16} className="text-emerald-400"/>}{m.type === "initial" ? "Inicial" : m.type === "in" ? "Entrada" : m.type === "sale" ? "Venta" : "Salida"}</span></td>
+              <td className="p-4">{m.quantity}</td><td className="p-4 font-semibold">{m.newStock}</td><td className="p-4 text-slate-400">{(m.saleId && session.user.role === "admin") ? <Link to={`/panel/ventas/${m.saleId}`} className="text-blue-400 hover:underline">{m.note}</Link> : m.note}</td>
             </tr>)}</tbody>
           </table></div>}
       </section>

@@ -8,6 +8,7 @@ import { requireRole } from "./middleware/requireRole.js";
 import categoriesRouter from "./routes/categories.js";
 import productsRouter from "./routes/products.js";
 import inventoryRouter from "./routes/inventory.js";
+import salesRouter from "./routes/sales.js";
 import { requireBusinessActive } from "./utils/requireBusinessActive.js";
 
 const app = express();
@@ -38,6 +39,7 @@ app.get("/api/admin/check", requireAuth, requireRole("admin"), (req, res) =>
 app.use("/api/categories", requireAuth, requireBusinessActive, categoriesRouter);
 app.use("/api/products", requireAuth, requireBusinessActive, productsRouter);
 app.use("/api/inventory", requireAuth, requireBusinessActive, inventoryRouter);
+app.use("/api/sales", requireAuth, requireBusinessActive, salesRouter);
 
 app.use((err, req, res, next) => {
   console.error("Error de API:", err);

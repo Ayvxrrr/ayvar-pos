@@ -1,0 +1,24 @@
+/* El ticket es un documento de control interno; no representa una boleta SUNAT. */
+@media print {
+  @page { size: 80mm auto; margin: 4mm; }
+  body, html, #root { background: white !important; color: black !important; }
+  body * { visibility: hidden !important; }
+  #sale-print-receipt, #sale-print-receipt * { visibility: visible !important; }
+  #sale-print-receipt {
+    display: block !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 72mm !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    font: 11px/1.45 Arial, sans-serif !important;
+    background: white !important;
+    color: black !important;
+  }
+  #sale-print-receipt h2 { font-size: 16px !important; }
+  #sale-print-receipt p { margin: 4px 0 !important; }
+  #sale-print-receipt hr { margin: 8px 0 !important; border: 0; border-top: 1px dashed #777; }
+  #sale-print-receipt .sale-print-total { font-size: 15px !important; font-weight: 700 !important; }
+  #sale-print-receipt .sale-print-item { page-break-inside: avoid; }
+}
