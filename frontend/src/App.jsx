@@ -13,6 +13,8 @@ import SalesHistoryPage from "./pages/SalesHistoryPage";
 import SaleDetailPage from "./pages/SaleDetailPage";
 import CustomersPage from "./pages/CustomersPage";
 import CustomerHistoryPage from "./pages/CustomerHistoryPage";
+import DashboardHomePage from "./pages/DashboardHomePage";
+import ReportsPage from "./pages/ReportsPage";
 
 function Loading() {
   return <div className="flex min-h-screen items-center justify-center bg-slate-950 text-slate-300">Verificando sesión...</div>;
@@ -42,7 +44,7 @@ export default function App() {
     <Route path="/login" element={<PublicRoute />} />
     <Route element={<RequireAuth />}>
       <Route path="/panel" element={<DashboardLayout />}>
-        <Route index element={<DashboardPage />} />
+        <Route index element={<DashboardHomePage />} />
         <Route path="ventas" element={<RoleRoute allowed={sales}><SalesPage /></RoleRoute>} />
         <Route path="ventas/historial" element={<RoleRoute allowed={sales}><SalesHistoryPage /></RoleRoute>} />
         <Route path="ventas/:id" element={<RoleRoute allowed={sales}><SaleDetailPage /></RoleRoute>} />
@@ -51,7 +53,8 @@ export default function App() {
         <Route path="inventario" element={<RoleRoute allowed={inventory}><InventoryPage /></RoleRoute>} />
         <Route path="clientes" element={<RoleRoute allowed={sales}><CustomersPage /></RoleRoute>} />
         <Route path="clientes/:id" element={<RoleRoute allowed={sales}><CustomerHistoryPage /></RoleRoute>} />
-        <Route path="reportes" element={<RoleRoute allowed={admin}><ModulePage title="Reportes" description="Próximamente: estadísticas reales de ventas." /></RoleRoute>} />
+        <Route path="reportes" element={<RoleRoute allowed={admin}><ReportsPage /></RoleRoute>} />
+
         <Route path="usuarios" element={<RoleRoute allowed={admin}><ModulePage title="Usuarios" description="Próximamente: administración de trabajadores." /></RoleRoute>} />
         <Route path="configuracion" element={<RoleRoute allowed={admin}><ModulePage title="Configuración" description="Próximamente: ajustes del negocio." /></RoleRoute>} />
         <Route path="sin-acceso" element={<AccessDeniedPage />} />

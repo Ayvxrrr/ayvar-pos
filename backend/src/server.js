@@ -12,6 +12,7 @@ import salesRouter from "./routes/sales.js";
 import customersRouter from "./routes/customers.js";
 import receiptsRouter from "./routes/receipts.js";
 import { requireBusinessActive } from "./utils/requireBusinessActive.js";
+import reportsRouter from "./routes/reports.js";
 
 const app = express();
 const PORT = Number(process.env.PORT || 4000);
@@ -44,6 +45,8 @@ app.use("/api/inventory", requireAuth, requireBusinessActive, inventoryRouter);
 app.use("/api/customers", requireAuth, requireBusinessActive, customersRouter);
 app.use("/api/sales", requireAuth, requireBusinessActive, receiptsRouter);
 app.use("/api/sales", requireAuth, requireBusinessActive, salesRouter);
+app.use("/api/reports", requireAuth, requireBusinessActive, reportsRouter);
+
 
 app.use((err, req, res, next) => {
   console.error("Error de API:", err);
