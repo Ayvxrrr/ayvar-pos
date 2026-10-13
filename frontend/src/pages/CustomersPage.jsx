@@ -5,10 +5,11 @@ import { api } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import Notice from "../components/ui/Notice";
 import PageHeader from "../components/ui/PageHeader";
+import EmptyState from "../components/ui/EmptyState";
 
 const empty = { name: "", documentType: "none", documentNumber: "", phone: "", email: "", address: "" };
-const inputClass = "w-full rounded-xl border border-slate-700 bg-slate-800 px-3 py-2.5 text-sm text-white outline-none focus:border-blue-500";
-const labelClass = "block space-y-1.5 text-sm text-slate-300";
+const inputClass = "field";
+const labelClass = "field-label space-y-2";
 
 export default function CustomersPage() {
   const { session } = useAuth();
@@ -88,18 +89,17 @@ export default function CustomersPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <PageHeader title="Clientes" description="Registro, actualización e historial comercial por cliente." />
-        <button onClick={startNew} className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold hover:bg-blue-500">
+      <PageHeader eyebrow="Personas que eligen tu negocio" title="Clientes" description="Conoce a tus clientes y mantén su información e historial siempre a mano.">
+        <button onClick={startNew} className="btn btn-primary">
           <Plus size={17}/> Nuevo cliente
         </button>
-      </div>
+      </PageHeader>
       <Notice message={error}/><Notice message={notice} type="success"/>
 
-      {formOpen && <section className="rounded-2xl border border-blue-500/30 bg-slate-900 p-5 md:p-7">
+      {formOpen && <section className="panel page-enter border-brand-200 p-5 md:p-6">
         <div className="mb-5 flex items-center justify-between gap-3">
-          <h2 className="text-lg font-semibold">{editingId ? "Editar cliente" : "Registrar cliente"}</h2>
-          <button aria-label="Cerrar formulario" type="button" disabled={saving} onClick={() => setFormOpen(false)} className="rounded-lg p-2 hover:bg-slate-800"><X size={19}/></button>
+          <h2 className="panel-title"><span className="section-icon"><UserRound size={20}/></span>{editingId ? "Editar cliente" : "Registrar cliente"}</h2>
+          <button aria-label="Cerrar formulario" type="button" disabled={saving} onClick={() => setFormOpen(false)} className="icon-button"><X size={18}/></button>
         </div>
         <form onSubmit={save} className="grid gap-4 sm:grid-cols-2">
           <label className={labelClass}>Nombre / Razón social *
@@ -123,33 +123,33 @@ export default function CustomersPage() {
           <label className={labelClass}>Dirección
             <input className={inputClass} maxLength={250} value={form.address} onChange={e => update("address", e.target.value)} placeholder="Opcional"/>
           </label>
-          <div className="flex gap-3 sm:col-span-2">
-            <button disabled={saving} className="rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold hover:bg-blue-500 disabled:opacity-50">{saving ? "Guardando..." : editingId ? "Guardar cambios" : "Registrar cliente"}</button>
-            <button type="button" disabled={saving} onClick={() => setFormOpen(false)} className="rounded-xl border border-slate-700 px-5 py-3 text-sm hover:bg-slate-800">Cancelar</button>
+          <div className="flex flex-wrap gap-3 border-t border-slate-100 pt-5 sm:col-span-2">
+            <button disabled={saving} className="btn btn-primary">{saving ? "Guardando..." : editingId ? "Guardar cambios" : "Registrar cliente"}</button>
+            <button type="button" disabled={saving} onClick={() => setFormOpen(false)} className="btn btn-secondary">Cancelar</button>
           </div>
         </form>
       </section>}
 
-      <section className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 p-5">
-          <h2 className="flex items-center gap-2 font-semibold"><UserRound size={20} className="text-blue-400"/> Clientes ({filtered.length})</h2>
-          <label className="flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-800 px-3 text-slate-400">
-            <Search size={17}/><input aria-label="Buscar cliente" value={query} onChange={e => setQuery(e.target.value)} placeholder="Nombre, DNI, RUC, correo..." className="w-64 max-w-[60vw] bg-transparent py-2.5 text-sm text-white outline-none" />
+      <section className="panel overflow-hidden">
+        <div className="panel-heading">
+          <h2 className="panel-title"><UserRound size={18}/> Clientes <span className="badge badge-neutral">{filtered.length}</span></h2>
+          <label className="search-field">
+            <Search size={17}/><input aria-label="Buscar cliente" value={query} onChange={e => setQuery(e.target.value)} placeholder="Nombre, DNI, RUC, correo..." className="w-64 max-w-[60vw]" />
           </label>
         </div>
-        {loading ? <p className="p-6 text-slate-400">Cargando clientes...</p> : filtered.length === 0 ?
-          <p className="p-8 text-center text-slate-400">Todavía no hay clientes que coincidan con la búsqueda.</p> :
-          <div className="overflow-x-auto"><table className="w-full min-w-[820px] text-left text-sm">
-            <thead className="bg-slate-800/50 text-slate-400"><tr><th className="p-4">Cliente</th><th className="p-4">Documento</th><th className="p-4">Contacto</th><th className="p-4">Estado</th><th className="p-4">Acciones</th></tr></thead>
-            <tbody>{filtered.map(customer => <tr key={customer.id} className="border-t border-slate-800 hover:bg-slate-800/30">
-              <td className="p-4 font-medium">{customer.name}</td>
-              <td className="p-4 text-slate-300">{customer.documentNumber ? `${customer.documentType.toUpperCase()} ${customer.documentNumber}` : "—"}</td>
-              <td className="p-4 text-slate-300"><p>{customer.phone || "—"}</p><p className="text-xs text-slate-500">{customer.email}</p></td>
-              <td className="p-4"><span className={customer.active ? "text-emerald-400" : "text-amber-400"}>{customer.active ? "Activo" : "Inactivo"}</span></td>
+        {loading ? <EmptyState loading title="Cargando clientes..."/> : filtered.length === 0 ?
+          <EmptyState icon={UserRound} title="Tus clientes, más cerca" description="Todavía no hay clientes que coincidan con la búsqueda. Registra uno o prueba con otro término."/> :
+          <div className="overflow-x-auto"><table className="data-table min-w-[820px]">
+            <thead><tr><th className="p-4">Cliente</th><th className="p-4">Documento</th><th className="p-4">Contacto</th><th className="p-4">Estado</th><th className="p-4">Acciones</th></tr></thead>
+            <tbody>{filtered.map(customer => <tr key={customer.id}>
+              <td className="p-4"><div className="flex items-center gap-3"><span className="section-icon size-9 rounded-full text-xs font-bold">{customer.name?.charAt(0)?.toUpperCase()}</span>{customer.name}</div></td>
+              <td className="p-4 text-xs text-slate-500">{customer.documentNumber ? `${customer.documentType.toUpperCase()} ${customer.documentNumber}` : "—"}</td>
+              <td className="p-4 text-slate-600"><p>{customer.phone || "—"}</p><p className="mt-1 text-[11px] text-slate-400">{customer.email}</p></td>
+              <td className="p-4"><span className={`badge ${customer.active ? "badge-success" : "badge-warning"}`}>{customer.active ? "Activo" : "Inactivo"}</span></td>
               <td className="p-4"><div className="flex flex-wrap items-center gap-3">
-                <Link title="Historial de compras" aria-label={`Historial de ${customer.name}`} to={`/panel/clientes/${customer.id}`} className="text-blue-400 hover:text-blue-300"><History size={19}/></Link>
-                {customer.active && <button title="Editar" aria-label={`Editar ${customer.name}`} onClick={() => startEdit(customer)} className="text-slate-300 hover:text-white"><Pencil size={18}/></button>}
-                {isAdmin && <button title={customer.active ? "Desactivar" : "Reactivar"} aria-label={`${customer.active ? "Desactivar" : "Reactivar"} ${customer.name}`} onClick={() => toggleActive(customer)} className="text-amber-400 hover:text-amber-300">
+                <Link title="Historial de compras" aria-label={`Historial de ${customer.name}`} to={`/panel/clientes/${customer.id}`} className="text-brand-600"><History size={18}/></Link>
+                {customer.active && <button title="Editar" aria-label={`Editar ${customer.name}`} onClick={() => startEdit(customer)} className="text-slate-500 hover:text-brand-700"><Pencil size={17}/></button>}
+                {isAdmin && <button title={customer.active ? "Desactivar" : "Reactivar"} aria-label={`${customer.active ? "Desactivar" : "Reactivar"} ${customer.name}`} onClick={() => toggleActive(customer)} className="text-slate-400 hover:text-rose-600">
                   {customer.active ? <UserX size={18}/> : <RotateCcw size={18}/>}</button>}
               </div></td>
             </tr>)}</tbody>

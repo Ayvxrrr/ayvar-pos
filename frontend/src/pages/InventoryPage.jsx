@@ -5,8 +5,9 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import PageHeader from "../components/ui/PageHeader";
 import Notice from "../components/ui/Notice";
+import EmptyState from "../components/ui/EmptyState";
 
-const inputClass = "mt-2 w-full rounded-xl border border-slate-700 bg-slate-800 p-3 outline-none focus:border-blue-500";
+const inputClass = "field mt-2";
 export default function InventoryPage() {
   const { session } = useAuth();
   const [products, setProducts] = useState([]);
@@ -38,47 +39,47 @@ export default function InventoryPage() {
 
   return (
     <div>
-      <PageHeader title="Inventario" description="Registra entradas y salidas sin perder el historial de existencias." />
+      <PageHeader eyebrow="El control de tus existencias" title="Inventario" description="Cada movimiento tiene su historia. Mantén el stock de tu tienda al día." />
       <Notice message={error}/><Notice message={success} type="success"/>
-      <form onSubmit={submit} className="mb-7 rounded-2xl border border-slate-800 bg-slate-900 p-5">
-        <h2 className="mb-5 flex items-center gap-2 font-semibold"><Boxes size={20} className="text-blue-400"/> Ajustar existencias</h2>
+      <form onSubmit={submit} className="panel mb-6 p-5 md:p-6">
+        <h2 className="panel-title mb-5"><span className="section-icon"><Boxes size={20}/></span>Ajustar existencias</h2>
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <label className="text-sm text-slate-300">Producto *
+          <label className="field-label">Producto *
             <select required value={form.sku} onChange={e=>setForm(s=>({...s,sku:e.target.value}))} className={inputClass}>
               <option value="">Seleccionar...</option>
               {products.map(p=><option key={p.sku} value={p.sku}>{p.sku} — {p.name} (stock: {p.stock})</option>)}
             </select>
           </label>
-          <label className="text-sm text-slate-300">Movimiento *
+          <label className="field-label">Movimiento *
             <select value={form.type} onChange={e=>setForm(s=>({...s,type:e.target.value}))} className={inputClass}>
               <option value="in">Entrada (+)</option><option value="out">Salida (-)</option>
             </select>
           </label>
-          <label className="text-sm text-slate-300">Cantidad *
+          <label className="field-label">Cantidad *
             <input type="number" required min="1" max="1000000" step="1" value={form.quantity}
               onChange={e=>setForm(s=>({...s,quantity:e.target.value}))} className={inputClass}/>
           </label>
-          <label className="text-sm text-slate-300">Motivo *
+          <label className="field-label">Motivo *
             <input required minLength={3} maxLength={200} placeholder="Compra a proveedor, ajuste..." value={form.note}
               onChange={e=>setForm(s=>({...s,note:e.target.value}))} className={inputClass}/>
           </label>
         </div>
-        <button disabled={busy || !products.length} className="mt-5 rounded-xl bg-blue-600 px-5 py-3 font-medium hover:bg-blue-500 disabled:opacity-50">
+        <button disabled={busy || !products.length} className="btn btn-primary mt-5">
           {busy ? "Guardando..." : "Registrar movimiento"}
         </button>
       </form>
 
-      <section className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900">
-        <div className="border-b border-slate-800 p-5"><h2 className="font-semibold">Últimos movimientos (máximo 100)</h2></div>
-        {loading ? <p className="p-6 text-slate-400">Cargando...</p> : movements.length === 0
-          ? <p className="p-6 text-slate-400">Todavía no existen movimientos de inventario.</p>
-          : <div className="overflow-x-auto"><table className="w-full min-w-[750px] text-left text-sm">
-            <thead className="bg-slate-800/60 text-slate-400"><tr><th className="p-4">Fecha</th><th className="p-4">Producto</th><th className="p-4">Tipo</th><th className="p-4">Cantidad</th><th className="p-4">Stock final</th><th className="p-4">Motivo</th></tr></thead>
-            <tbody>{movements.map(m=><tr key={m.id} className="border-t border-slate-800">
-              <td className="p-4 text-slate-400">{m.createdAt ? new Date(m.createdAt).toLocaleString("es-PE") : "—"}</td>
+      <section className="panel overflow-hidden">
+        <div className="panel-heading"><h2 className="panel-title">Últimos movimientos</h2><span className="badge badge-neutral">Hasta 100 registros</span></div>
+        {loading ? <EmptyState loading title="Cargando movimientos..."/> : movements.length === 0
+          ? <EmptyState icon={Boxes} title="Todo movimiento empieza aquí" description="Todavía no existen movimientos de inventario."/>
+          : <div className="overflow-x-auto"><table className="data-table min-w-[750px]">
+            <thead><tr><th className="p-4">Fecha</th><th className="p-4">Producto</th><th className="p-4">Tipo</th><th className="p-4">Cantidad</th><th className="p-4">Stock final</th><th className="p-4">Motivo</th></tr></thead>
+            <tbody>{movements.map(m=><tr key={m.id}>
+              <td className="p-4 text-xs text-slate-500">{m.createdAt ? new Date(m.createdAt).toLocaleString("es-PE") : "—"}</td>
               <td className="p-4">{m.sku}</td>
-              <td className="p-4"><span className="flex items-center gap-1">{["out", "sale"].includes(m.type) ? <ArrowDownCircle size={16} className="text-red-400"/> : <ArrowUpCircle size={16} className="text-emerald-400"/>}{m.type === "initial" ? "Inicial" : m.type === "in" ? "Entrada" : m.type === "sale" ? "Venta" : "Salida"}</span></td>
-              <td className="p-4">{m.quantity}</td><td className="p-4 font-semibold">{m.newStock}</td><td className="p-4 text-slate-400">{(m.saleId && session.user.role === "admin") ? <Link to={`/panel/ventas/${m.saleId}`} className="text-blue-400 hover:underline">{m.note}</Link> : m.note}</td>
+              <td className="p-4"><span className={`badge ${["out", "sale"].includes(m.type) ? "badge-warning" : "badge-success"}`}>{["out", "sale"].includes(m.type) ? <ArrowDownCircle size={14}/> : <ArrowUpCircle size={14}/>}{m.type === "initial" ? "Inicial" : m.type === "in" ? "Entrada" : m.type === "sale" ? "Venta" : "Salida"}</span></td>
+              <td className="p-4">{m.quantity}</td><td className="p-4 font-semibold">{m.newStock}</td><td className="p-4 text-slate-500">{(m.saleId && session.user.role === "admin") ? <Link to={`/panel/ventas/${m.saleId}`} className="text-link">{m.note}</Link> : m.note}</td>
             </tr>)}</tbody>
           </table></div>}
       </section>

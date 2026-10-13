@@ -2,20 +2,21 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Search, ShoppingCart, Plus, Minus, Trash2, RefreshCw,
-  CreditCard, Banknote, ArrowRight, ReceiptText, Filter, Package,
+  CreditCard, Banknote, ArrowRight, ReceiptText, Filter, Package, Smartphone, ArrowLeftRight, UserRound,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { api, centsFromMoney, moneyFromCents } from "../services/api";
 import PageHeader from "../components/ui/PageHeader";
 import Notice from "../components/ui/Notice";
+import EmptyState from "../components/ui/EmptyState";
 
 const methods = [
   { id: "cash", title: "Efectivo", icon: Banknote },
   { id: "card", title: "Tarjeta", icon: CreditCard },
-  { id: "transfer", title: "Transferencia", icon: CreditCard },
-  { id: "yape", title: "Yape", icon: CreditCard },
+  { id: "transfer", title: "Transferencia", icon: ArrowLeftRight },
+  { id: "yape", title: "Yape", icon: Smartphone },
 ];
-const inputClass = "w-full rounded-xl border border-slate-700 bg-slate-800 p-3 text-white outline-none focus:border-blue-500";
+const inputClass = "field";
 const newKey = () => crypto.randomUUID();
 
 function loadDraft(storageKey) {
@@ -192,30 +193,29 @@ export default function SalesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <PageHeader title="Punto de venta" description="Selecciona productos, prepara el carrito y registra pagos declarados." />
-        <Link to="/panel/ventas/historial" className="inline-flex items-center gap-2 rounded-xl border border-slate-700 px-4 py-3 text-sm text-slate-200 hover:bg-slate-800">
+      <PageHeader eyebrow="Tu caja, lista para vender" title="Punto de venta" description="Encuentra un producto, agrégalo al carrito y prepara tu próxima venta.">
+        <Link to="/panel/ventas/historial" className="btn btn-secondary">
           <ReceiptText size={18}/> Historial de ventas
         </Link>
-      </div>
+      </PageHeader>
       <Notice message={error} />
       <Notice message={success} type="success" />
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_390px]">
+      <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_350px] 2xl:grid-cols-[minmax(0,1fr)_380px]">
         <section className="min-w-0 space-y-4">
-          <div className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
+          <div className="panel p-4 sm:p-5">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <h2 className="text-lg font-semibold">Catálogo disponible</h2>
+              <h2 className="panel-title"><Package size={18}/> Catálogo disponible <span className="badge badge-neutral">{filtered.length}</span></h2>
               <button type="button" disabled={busy} onClick={() => reload().catch(e => setError(e.message))}
-                className="flex items-center gap-2 text-sm text-blue-400 hover:text-blue-300"><RefreshCw size={16}/> Actualizar</button>
+                className="flex items-center gap-1.5 rounded-lg p-1.5 text-xs font-semibold text-brand-700 hover:bg-brand-50"><RefreshCw size={14}/> Actualizar</button>
             </div>
-            <div className="mt-4 flex flex-col gap-3 sm:flex-row">
-              <label className="flex flex-1 items-center gap-2 rounded-xl border border-slate-700 bg-slate-800 px-3 text-slate-400">
+            <div className="mt-4 flex flex-col gap-3 2xl:flex-row">
+              <label className="search-field flex-1">
                 <Search size={18}/>
                 <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar por nombre o SKU" aria-label="Buscar productos"
-                  className="w-full bg-transparent py-3 text-sm text-white outline-none"/>
+                  className="w-full"/>
               </label>
-              <label className="flex items-center gap-2 text-slate-400">
-                <Filter size={17}/>
+              <label className="flex min-w-0 items-center gap-2 text-slate-400">
+                <Filter size={17} className="shrink-0"/>
                 <select value={categoryId} onChange={e => setCategoryId(e.target.value)} aria-label="Filtrar por categoría" className={inputClass}>
                   <option value="all">Todas las categorías</option>
                   {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -223,22 +223,23 @@ export default function SalesPage() {
               </label>
             </div>
           </div>
-          {loading ? <p className="p-8 text-slate-400">Cargando productos...</p> : filtered.length === 0
-            ? <p className="rounded-2xl border border-slate-800 bg-slate-900 p-8 text-slate-400">No se encontraron productos.</p>
-            : <div className="grid gap-3 sm:grid-cols-2 2xl:grid-cols-3">
+          {loading ? <div className="panel"><EmptyState loading title="Cargando productos..."/></div> : filtered.length === 0
+            ? <div className="panel"><EmptyState icon={Package} title="No se encontraron productos" description="Prueba con otro nombre, SKU o categoría."/></div>
+            : <div className="grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 md:grid-cols-3 xl:grid-cols-2 2xl:grid-cols-3">
               {filtered.map(product => (
-                <article key={product.sku} className="flex flex-col justify-between rounded-2xl border border-slate-800 bg-slate-900 p-5 transition hover:border-blue-500/40">
+                <article key={product.sku} className="product-card justify-between">
                   <div>
-                    <div className="mb-4 flex size-12 items-center justify-center rounded-xl bg-blue-500/10 text-blue-400"><Package size={22}/></div>
-                    <p className="text-xs text-slate-500">{product.sku} · {categoryNames.get(product.categoryId) || "Sin categoría"}</p>
-                    <h3 className="mt-1 min-h-12 font-semibold text-white">{product.name}</h3>
-                    <p className="mt-2 text-xl font-bold text-blue-400">{moneyFromCents(product.priceCents)}</p>
-                    <p className={`mt-2 text-xs ${product.stock > 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                    <div className="product-art" aria-hidden="true"><Package size={29} strokeWidth={1.4}/></div>
+                    <p className="truncate text-[10px] font-semibold text-slate-400" title={`${product.sku} · ${categoryNames.get(product.categoryId) || "Sin categoría"}`}>{product.sku} · {categoryNames.get(product.categoryId) || "Sin categoría"}</p>
+                    <h3 className="mt-2 min-h-10 text-sm leading-5 font-bold">{product.name}</h3>
+                    <p className="mt-3 text-xl font-extrabold tracking-tight text-slate-800">{moneyFromCents(product.priceCents)}</p>
+                    <p className={`mt-1.5 flex items-center gap-1.5 text-[10px] font-semibold ${product.stock > 0 ? "text-brand-600" : "text-rose-600"}`}>
+                      <span className="size-1.5 rounded-full bg-current"/>
                       {product.stock > 0 ? `Disponibles: ${product.stock}` : "Sin stock"}
                     </p>
                   </div>
                   <button type="button" disabled={busy || product.stock <= 0} onClick={() => addProduct(product)}
-                    className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-3 py-2.5 text-sm font-medium hover:bg-blue-500 disabled:opacity-40">
+                    className="btn mt-4 w-full border-brand-100 bg-brand-50 px-2 text-xs text-brand-700 hover:border-brand-300 hover:bg-brand-100 disabled:opacity-40">
                     <Plus size={17}/> Añadir al carrito
                   </button>
                 </article>
@@ -246,37 +247,37 @@ export default function SalesPage() {
             </div>}
         </section>
 
-        <aside className="h-fit rounded-2xl border border-slate-800 bg-slate-900 p-5 xl:sticky xl:top-24">
-          <div className="flex items-center justify-between gap-3 border-b border-slate-800 pb-4">
-            <h2 className="flex items-center gap-2 text-lg font-semibold"><ShoppingCart size={20} className="text-blue-400"/> Carrito <span className="text-sm text-slate-500">({itemCount})</span></h2>
+        <aside className="panel h-fit p-5 xl:sticky xl:top-24">
+          <div className="flex items-center justify-between gap-3 border-b border-slate-100 pb-4">
+            <h2 className="panel-title"><span className="section-icon size-9"><ShoppingCart size={18}/></span> Tu carrito <span className="badge badge-neutral">{itemCount}</span></h2>
             <button type="button" disabled={busy || cart.length === 0} onClick={() => { setCart([]); resetOperation(); }}
-              className="text-xs text-slate-400 hover:text-rose-400 disabled:opacity-40">Vaciar</button>
+              className="rounded-lg p-2 text-[11px] font-semibold text-slate-400 hover:bg-rose-50 hover:text-rose-600 disabled:opacity-40">Vaciar</button>
           </div>
           <div className="my-4 max-h-72 space-y-3 overflow-y-auto">
-            {cart.length === 0 ? <p className="py-8 text-center text-sm text-slate-500">Agrega productos para empezar una venta.</p>
+            {cart.length === 0 ? <EmptyState icon={ShoppingCart} title="Tu carrito está esperando" description="Agrega productos para empezar una venta."/>
               : cartLines.map(line => (
-                <div key={line.sku} className="rounded-xl border border-slate-800 bg-slate-950/60 p-3">
+                <div key={line.sku} className="rounded-xl border border-slate-100 bg-slate-50/70 p-3">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0"><p className="text-sm font-medium">{line.product?.name || `Producto no disponible (${line.sku})`}</p><p className="text-xs text-slate-500">{line.sku}</p></div>
-                    <button type="button" disabled={busy} aria-label={`Quitar ${line.sku}`} onClick={() => updateQuantity(line.sku, 0)} className="text-slate-500 hover:text-rose-400"><Trash2 size={17}/></button>
+                    <button type="button" disabled={busy} aria-label={`Quitar ${line.sku}`} onClick={() => updateQuantity(line.sku, 0)} className="flex size-8 shrink-0 items-center justify-center rounded-lg text-slate-400 hover:bg-rose-50 hover:text-rose-600"><Trash2 size={15}/></button>
                   </div>
                   <div className="mt-3 flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
-                      <button type="button" disabled={busy} aria-label={`Restar unidad de ${line.sku}`} onClick={() => updateQuantity(line.sku, line.quantity - 1)} className="rounded-lg bg-slate-800 p-2"><Minus size={14}/></button>
+                      <button type="button" disabled={busy} aria-label={`Restar unidad de ${line.sku}`} onClick={() => updateQuantity(line.sku, line.quantity - 1)} className="icon-button size-8 rounded-lg"><Minus size={14}/></button>
                       <span className="w-7 text-center text-sm">{line.quantity}</span>
-                      <button type="button" disabled={busy} aria-label={`Sumar unidad de ${line.sku}`} onClick={() => updateQuantity(line.sku, line.quantity + 1)} className="rounded-lg bg-slate-800 p-2"><Plus size={14}/></button>
+                      <button type="button" disabled={busy} aria-label={`Sumar unidad de ${line.sku}`} onClick={() => updateQuantity(line.sku, line.quantity + 1)} className="icon-button size-8 rounded-lg"><Plus size={14}/></button>
                     </div>
                     <span className="text-sm font-semibold">{moneyFromCents((line.product?.priceCents || 0) * line.quantity)}</span>
                   </div>
                 </div>
               ))}
           </div>
-          <div className="border-t border-slate-800 pt-4">
-            <div className="flex items-center justify-between"><span className="text-slate-400">Total de venta</span><span className="text-2xl font-bold text-emerald-400">{moneyFromCents(totalCents)}</span></div>
-            <p className="mt-1 text-xs text-slate-500">Los importes definitivos se verificarán en el servidor.</p>
+          <div className="rounded-xl bg-[#122c32] p-4">
+            <div className="flex flex-wrap items-center justify-between gap-2"><span className="text-xs font-medium text-slate-300">Total de venta</span><span className="text-2xl font-extrabold tracking-tight text-white" aria-live="polite">{moneyFromCents(totalCents)}</span></div>
+            <p className="mt-2 text-[10px] leading-relaxed text-slate-400">Los importes definitivos se verificarán en el servidor.</p>
           </div>
           <div className="mt-5 space-y-2">
-            <label htmlFor="sale-customer" className="text-sm font-medium">Cliente (opcional)</label>
+            <label htmlFor="sale-customer" className="field-label flex items-center gap-1.5"><UserRound size={14}/> Cliente (opcional)</label>
             <select id="sale-customer" value={customerId} disabled={busy}
               onChange={event => { setCustomerId(event.target.value); resetOperation(); }}
               className={inputClass}>
@@ -285,28 +286,28 @@ export default function SalesPage() {
                 {customer.name}{customer.documentNumber ? ` · ${customer.documentNumber}` : ""}
               </option>)}
             </select>
-            <Link to="/panel/clientes" className="inline-block text-xs text-blue-400 hover:text-blue-300">Gestionar clientes</Link>
+            <Link to="/panel/clientes" className="text-link inline-block text-[10px]">Gestionar clientes</Link>
           </div>
           <div className="mt-5 space-y-3">
-            <p className="text-sm font-medium">Método de pago</p>
+            <p className="field-label">Método de pago</p>
             <div className="grid grid-cols-2 gap-2">
               {methods.map(m => <button type="button" key={m.id} disabled={busy} onClick={() => changeMethod(m.id)}
                 aria-pressed={paymentMethod === m.id}
-                className={`flex items-center justify-center gap-2 rounded-xl border px-2 py-3 text-sm transition ${paymentMethod === m.id ? "border-blue-500 bg-blue-600/15 text-blue-300" : "border-slate-700 text-slate-300 hover:bg-slate-800"}`}>
+                className="payment-option">
                 <m.icon size={17}/> {m.title}
               </button>)}
             </div>
-            {paymentMethod === "cash" && <label className="block text-sm text-slate-300">Efectivo recibido (S/)
+            {paymentMethod === "cash" && <label className="field-label">Efectivo recibido (S/)
               <input value={cashReceived} onChange={e => changeReceived(e.target.value)} inputMode="decimal" placeholder="Ej. 100.00" className={`mt-2 ${inputClass}`}/>
-              <span className="mt-2 flex justify-between text-xs text-slate-400">Vuelto estimado <strong className="text-emerald-400">{moneyFromCents(changeCents)}</strong></span>
+              <span className="mt-2 flex justify-between text-xs text-slate-500">Vuelto estimado <strong className="text-brand-700">{moneyFromCents(changeCents)}</strong></span>
             </label>}
-            {paymentMethod !== "cash" && <p className="text-xs text-amber-300">Este registro no verifica el cobro en el banco o pasarela.</p>}
+            {paymentMethod !== "cash" && <p className="rounded-lg bg-amber-50 p-3 text-[11px] leading-relaxed text-amber-700">Este registro no verifica el cobro en el banco o pasarela.</p>}
           </div>
           <button type="button" disabled={busy || cart.length === 0 || missingProduct} onClick={checkout}
-            className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-3.5 font-semibold hover:bg-emerald-500 disabled:opacity-50">
+            className="btn btn-primary mt-6 min-h-12 w-full justify-between px-5">
             {busy ? "Procesando venta..." : "Confirmar venta"}<ArrowRight size={19}/>
           </button>
-          <p className="mt-3 text-center text-xs text-slate-500">Ticket interno de demostración · No es comprobante SUNAT</p>
+          <p className="mt-3 text-center text-[9px] leading-relaxed text-slate-400">Ticket interno de demostración · No es comprobante SUNAT</p>
         </aside>
       </div>
     </div>

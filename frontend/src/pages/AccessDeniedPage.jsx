@@ -5,23 +5,23 @@ import { ShieldAlert, ArrowLeft } from "lucide-react";
 export default function AccessDeniedPage() {
   return (
     <div className="flex min-h-[65vh] items-center justify-center">
-      <div className="max-w-lg text-center">
-        <div className="mx-auto flex size-20 items-center justify-center rounded-2xl bg-red-500/10 text-red-400">
+      <div className="panel max-w-lg p-7 text-center sm:p-12">
+        <div className="mx-auto flex size-20 items-center justify-center rounded-3xl border border-amber-100 bg-amber-50 text-amber-600">
           <ShieldAlert size={40} />
         </div>
 
-        <h1 className="mt-6 text-3xl font-bold">
+        <h1 className="mt-6 text-3xl font-extrabold">
           Acceso restringido
         </h1>
 
-        <p className="mt-4 text-slate-400">
+        <p className="mt-4 text-sm leading-relaxed text-slate-500">
           Tu cuenta no tiene permisos para acceder
           a esta sección de Ayvar POS.
         </p>
 
         <Link
           to="/panel"
-          className="mt-7 inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-3 font-medium transition hover:bg-blue-500"
+          className="btn btn-primary mt-7"
         >
           <ArrowLeft size={18} />
           Regresar al Dashboard

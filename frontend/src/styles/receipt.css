@@ -2,6 +2,7 @@
 @media print {
   @page { size: 80mm auto; margin: 4mm; }
   body, html, #root { background: white !important; color: black !important; }
+  .page-enter { animation: none !important; transform: none !important; }
   body * { visibility: hidden !important; }
   #sale-print-receipt, #sale-print-receipt * { visibility: visible !important; }
   #sale-print-receipt {

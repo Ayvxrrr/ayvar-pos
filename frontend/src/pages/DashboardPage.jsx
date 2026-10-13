@@ -13,6 +13,8 @@ import {
 import StatCard from "../components/dashboard/StatCard";
 import { navigation } from "../config/navigation";
 import { useAuth } from "../context/AuthContext";
+import PageHeader from "../components/ui/PageHeader";
+import EmptyState from "../components/ui/EmptyState";
 
 export default function DashboardPage() {
   const { session } = useAuth();
@@ -22,7 +24,7 @@ export default function DashboardPage() {
     {
       title: "Ventas de hoy",
       value: "—",
-      description: "Pendiente de conectar ventas",
+      description: "Sin indicadores en este resumen",
       icon: ShoppingCart,
       color: "blue",
     },
@@ -36,14 +38,14 @@ export default function DashboardPage() {
     {
       title: "Productos registrados",
       value: "—",
-      description: "Pendiente del módulo de productos",
+      description: "Consulta el catálogo de tu tienda",
       icon: Package,
       color: "purple",
     },
     {
       title: "Alertas de stock",
       value: "—",
-      description: "Pendiente de conectar inventario",
+      description: "Sin indicadores en este resumen",
       icon: AlertTriangle,
       color: "orange",
     },
@@ -57,19 +59,7 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-8">
-      <section>
-        <p className="text-sm font-medium text-blue-400">
-          PANEL GENERAL
-        </p>
-
-        <h1 className="mt-2 text-3xl font-bold tracking-tight text-white">
-          Bienvenido, {user.name}
-        </h1>
-
-        <p className="mt-2 text-slate-400">
-          Aquí podrás consultar y administrar la actividad de tu negocio.
-        </p>
-      </section>
+      <PageHeader eyebrow="Un nuevo día para hacer crecer tu negocio" title={`Bienvenido, ${user.name}`} description="Tu espacio de trabajo está listo. ¿Por dónde empezamos?" />
 
       <section className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
         {metrics.map((metric) => (
@@ -81,40 +71,27 @@ export default function DashboardPage() {
       </section>
 
       <div className="grid gap-6 xl:grid-cols-3">
-        <section className="rounded-2xl border border-slate-800 bg-slate-900 p-6 xl:col-span-2">
+        <section className="panel p-6 xl:col-span-2">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold">
+            <h2 className="panel-title">
               Resumen de ventas
             </h2>
 
-            <span className="rounded-full bg-blue-500/10 px-3 py-1 text-xs text-blue-400">
+            <span className="badge badge-neutral">
               Próximamente
             </span>
           </div>
 
-          <div className="mt-6 flex min-h-64 flex-col items-center justify-center rounded-xl border border-dashed border-slate-700 bg-slate-950/40 text-center">
-            <ShoppingCart
-              size={36}
-              className="mb-4 text-slate-600"
-            />
-
-            <p className="font-medium text-slate-300">
-              Aún no hay estadísticas disponibles
-            </p>
-
-            <p className="mt-2 max-w-sm px-4 text-sm text-slate-500">
-              Los gráficos aparecerán cuando implementemos el registro de ventas.
-            </p>
-          </div>
+          <div className="mt-5 flex min-h-60 items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50/50"><EmptyState icon={ShoppingCart} title="Aún no hay estadísticas disponibles" description="Utiliza los accesos rápidos para continuar con las operaciones de tu tienda."/></div>
         </section>
 
-        <section className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
-          <h2 className="text-lg font-semibold">
+        <section className="panel p-6">
+          <h2 className="panel-title">
             Información del negocio
           </h2>
 
           <div className="mt-6 flex items-center gap-3">
-            <div className="rounded-xl bg-blue-500/10 p-3 text-blue-400">
+            <div className="section-icon size-12">
               <Store size={24} />
             </div>
 
@@ -128,7 +105,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="mt-6 space-y-4 border-t border-slate-800 pt-5 text-sm">
+          <div className="mt-6 space-y-4 border-t border-slate-100 pt-5 text-xs">
             <div className="flex justify-between gap-3">
               <span className="text-slate-400">Moneda</span>
               <span>{business.currency}</span>
@@ -136,12 +113,12 @@ export default function DashboardPage() {
 
             <div className="flex justify-between gap-3">
               <span className="text-slate-400">Rol</span>
-              <span className="capitalize">{user.role}</span>
+              <span className="font-semibold">{{ admin: "Administrador", cashier: "Cajero", warehouse: "Almacén" }[user.role] || user.role}</span>
             </div>
 
             <div className="flex justify-between gap-3">
               <span className="text-slate-400">Sistema</span>
-              <span className="text-emerald-400">
+              <span className="badge badge-success">
                 Conectado
               </span>
             </div>
@@ -150,7 +127,7 @@ export default function DashboardPage() {
       </div>
 
       <section>
-        <h2 className="mb-5 text-lg font-semibold">
+        <h2 className="mb-4 text-sm font-bold">
           Accesos rápidos
         </h2>
 
@@ -162,12 +139,12 @@ export default function DashboardPage() {
               <Link
                 key={item.path}
                 to={item.path}
-                className="group flex items-center justify-between rounded-2xl border border-slate-800 bg-slate-900 p-5 transition hover:border-blue-500/40 hover:bg-slate-800"
+                className="quick-link group"
               >
                 <div className="flex items-center gap-3">
                   <Icon
                     size={20}
-                    className="text-blue-400"
+                    className="text-brand-600"
                   />
 
                   <span className="text-sm font-medium">
@@ -177,7 +154,7 @@ export default function DashboardPage() {
 
                 <ArrowUpRight
                   size={18}
-                  className="text-slate-500 transition group-hover:text-blue-400"
+                  className="text-slate-400 transition group-hover:text-brand-600"
                 />
               </Link>
             );

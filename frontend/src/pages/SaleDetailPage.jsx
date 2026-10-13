@@ -4,6 +4,7 @@ import { ArrowLeft, Printer, ReceiptText, CheckCircle2, Download } from "lucide-
 import { api, moneyFromCents } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import Notice from "../components/ui/Notice";
+import EmptyState from "../components/ui/EmptyState";
 import { downloadSaleReceipt } from "../services/receipt";
 import "../styles/receipt.css";
 
@@ -36,37 +37,37 @@ export default function SaleDetailPage() {
     return () => { active = false; };
   }, [id]);
 
-  if (loading) return <p className="p-8 text-slate-400">Cargando comprobante interno...</p>;
+  if (loading) return <div className="panel"><EmptyState loading title="Cargando comprobante interno..."/></div>;
   if (!sale) return <Notice message={error || "Venta no encontrada."}/>;
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <Link to="/panel/ventas/historial" className="inline-flex items-center gap-2 text-slate-300 hover:text-white"><ArrowLeft size={18}/> Historial</Link>
-        <div className="flex gap-3">
-          <Link to="/panel/ventas" className="rounded-xl border border-slate-700 px-4 py-2.5 text-sm hover:bg-slate-800">Nueva venta</Link>
-          <button type="button" disabled={downloading} onClick={handleDownload} className="inline-flex items-center gap-2 rounded-xl border border-slate-700 px-4 py-2.5 text-sm font-medium hover:bg-slate-800 disabled:opacity-50"><Download size={17}/> {downloading ? "Descargando..." : "Descargar PDF"}</button>
-          <button type="button" onClick={() => window.print()} className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium hover:bg-blue-500"><Printer size={17}/> Imprimir ticket</button>
+        <Link to="/panel/ventas/historial" className="btn btn-ghost"><ArrowLeft size={16}/> Historial</Link>
+        <div className="flex flex-wrap gap-2">
+          <Link to="/panel/ventas" className="btn btn-secondary">Nueva venta</Link>
+          <button type="button" disabled={downloading} onClick={handleDownload} className="btn btn-secondary"><Download size={16}/> {downloading ? "Descargando..." : "Descargar PDF"}</button>
+          <button type="button" onClick={() => window.print()} className="btn btn-primary"><Printer size={16}/> Imprimir ticket</button>
         </div>
       </div>
       <Notice message={error}/>
-      <section className="rounded-2xl border border-slate-800 bg-slate-900 p-6 md:p-8">
+      <section className="panel overflow-hidden border-t-4 border-t-brand-500 p-5 sm:p-8">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h1 className="flex items-center gap-2 text-2xl font-bold"><ReceiptText className="text-blue-400"/> Detalle de venta</h1>
-          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-3 py-1 text-sm text-emerald-400"><CheckCircle2 size={16}/> Registrada</span>
+          <h1 className="flex items-center gap-3 text-2xl font-extrabold"><span className="section-icon"><ReceiptText size={21}/></span> Detalle de venta</h1>
+          <span className="badge badge-success"><CheckCircle2 size={14}/> Registrada</span>
         </div>
-        <p className="mt-2 text-sm text-slate-400">El stock ya se descontó en Firestore. Este registro no equivale a un comprobante fiscal.</p>
-        <div className="mt-6 grid gap-4 border-t border-slate-800 pt-5 text-sm sm:grid-cols-2">
+        <p className="mt-4 text-xs leading-relaxed text-slate-500">El stock ya se descontó en Firestore. Este registro no equivale a un comprobante fiscal.</p>
+        <div className="mt-6 grid gap-5 rounded-xl border border-slate-100 bg-slate-50/80 p-5 text-sm sm:grid-cols-2">
           <div><p className="text-slate-500">N.º operación</p><p className="break-all font-semibold">{sale.id}</p></div>
           <div><p className="text-slate-500">Fecha</p><p className="font-medium">{sale.createdAt ? new Date(sale.createdAt).toLocaleString("es-PE") : "—"}</p></div>
           <div><p className="text-slate-500">Negocio</p><p className="font-medium">{session.business.name}</p></div>
           <div><p className="text-slate-500">Cajero</p><p className="font-medium">{sale.cashierName}</p></div>
           <div><p className="text-slate-500">Cliente</p><p className="font-medium">{sale.customerName || "Consumidor final"}</p>{sale.customerDocumentNumber && <p className="text-xs text-slate-400">{sale.customerDocumentType?.toUpperCase()} {sale.customerDocumentNumber}</p>}</div>
         </div>
-        <div className="mt-7 overflow-x-auto rounded-xl border border-slate-800">
-          <table className="w-full min-w-[490px] text-left text-sm">
-            <thead className="bg-slate-800/60 text-slate-400"><tr><th className="p-3">Producto</th><th className="p-3">Cant.</th><th className="p-3">Unitario</th><th className="p-3">Subtotal</th></tr></thead>
-            <tbody>{(sale.items || []).map(item => <tr key={item.sku} className="border-t border-slate-800">
+        <div className="mt-7 overflow-x-auto rounded-xl border border-slate-200">
+          <table className="data-table min-w-[490px]">
+            <thead><tr><th className="p-3">Producto</th><th className="p-3">Cant.</th><th className="p-3">Unitario</th><th className="p-3">Subtotal</th></tr></thead>
+            <tbody>{(sale.items || []).map(item => <tr key={item.sku}>
               <td className="p-3">{item.name}<p className="text-xs text-slate-500">{item.sku}</p></td>
               <td className="p-3">{item.quantity}</td><td className="p-3">{moneyFromCents(item.unitPriceCents)}</td><td className="p-3 font-medium">{moneyFromCents(item.lineTotalCents)}</td>
             </tr>)}</tbody>
@@ -78,7 +79,7 @@ export default function SaleDetailPage() {
             <div className="flex justify-between text-sm"><span className="text-slate-400">Recibido</span><span>{moneyFromCents(sale.receivedCents)}</span></div>
             <div className="flex justify-between text-sm"><span className="text-slate-400">Vuelto</span><span>{moneyFromCents(sale.changeCents)}</span></div>
           </>}
-          <div className="flex justify-between border-t border-slate-700 pt-4 text-lg font-bold"><span>Total</span><span className="text-emerald-400">{moneyFromCents(sale.totalCents)}</span></div>
+          <div className="flex items-center justify-between rounded-xl bg-brand-50 p-4 text-lg font-extrabold"><span className="text-sm text-brand-700">Total</span><span className="text-brand-700">{moneyFromCents(sale.totalCents)}</span></div>
         </div>
       </section>
 

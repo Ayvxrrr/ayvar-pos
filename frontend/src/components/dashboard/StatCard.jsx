@@ -1,10 +1,11 @@
 
 const colors = {
-  blue: "bg-blue-500/10 text-blue-400",
-  green: "bg-emerald-500/10 text-emerald-400",
-  purple: "bg-violet-500/10 text-violet-400",
-  orange: "bg-orange-500/10 text-orange-400",
+  blue: "bg-sky-50 text-sky-600",
+  green: "bg-brand-50 text-brand-600",
+  purple: "bg-violet-50 text-violet-600",
+  orange: "bg-amber-50 text-amber-600",
 };
+const accents = { blue: "#0284c7", green: "#128064", purple: "#7c3aed", orange: "#d97706" };
 
 export default function StatCard({
   title,
@@ -14,24 +15,24 @@ export default function StatCard({
   color = "blue",
 }) {
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6 transition hover:border-slate-700">
+    <div className="stat-card" style={{ "--stat-accent": accents[color] }}>
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-sm text-slate-400">
+          <p className="text-xs font-semibold text-slate-500">
             {title}
           </p>
 
-          <h3 className="mt-3 text-3xl font-bold tracking-tight text-white">
+          <h3 className="stat-value">
             {value}
           </h3>
         </div>
 
-        <div className={`rounded-xl p-3 ${colors[color]}`}>
-          <Icon size={23} />
+        <div className={`rounded-xl p-2.5 ${colors[color]}`}>
+          <Icon size={20} strokeWidth={1.8} />
         </div>
       </div>
 
-      <p className="mt-5 text-xs text-slate-500">
+      <p className="mt-4 text-[11px] leading-relaxed text-slate-400">
         {description}
       </p>
     </div>

@@ -3,6 +3,7 @@ import { ClipboardList, Search } from "lucide-react";
 import { api } from "../services/api";
 import Notice from "../components/ui/Notice";
 import PageHeader from "../components/ui/PageHeader";
+import EmptyState from "../components/ui/EmptyState";
 
 const descriptions = {
   "team.invited": "Invitó a un trabajador",
@@ -30,31 +31,31 @@ export default function AuditPage() {
   ), [query, events]);
   const dateFmt = value => value ? new Date(value).toLocaleString("es-PE", { timeZone: "America/Lima" }) : "—";
   return <div className="space-y-6">
-    <PageHeader title="Auditoría" description="Últimos 100 cambios administrativos realizados en este negocio." />
+    <PageHeader eyebrow="Visibilidad para tu negocio" title="Auditoría" description="Un registro claro de los últimos 100 cambios administrativos de tu equipo." />
     <Notice message={error}/>
-    <section className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 p-5">
-        <div className="flex items-center gap-2"><ClipboardList className="text-blue-400" size={20}/><h2 className="font-semibold">Historial administrativo</h2></div>
-        <div className="relative w-full sm:w-72"><Search size={17} className="absolute left-3 top-3 text-slate-500"/>
-          <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Filtrar eventos" className="w-full rounded-xl border border-slate-700 bg-slate-800 py-2.5 pl-10 pr-3 text-sm outline-none"/>
-        </div>
+    <section className="panel overflow-hidden">
+      <div className="panel-heading">
+        <h2 className="panel-title"><ClipboardList size={18}/>Historial administrativo <span className="badge badge-neutral">{filtered.length}</span></h2>
+        <label className="search-field w-full sm:w-72"><Search size={17}/>
+          <input aria-label="Filtrar eventos" value={query} onChange={e => setQuery(e.target.value)} placeholder="Filtrar eventos" className="w-full"/>
+        </label>
       </div>
-      <div className="overflow-x-auto"><table className="w-full min-w-[740px] text-left text-sm">
-        <thead className="bg-slate-950/40 text-slate-500"><tr><th className="px-5 py-4">Fecha (Perú)</th><th className="px-4 py-4">Acción</th><th className="px-4 py-4">Responsable</th><th className="px-5 py-4">Destino / Cambios</th></tr></thead>
-        <tbody className="divide-y divide-slate-800">{filtered.map(e =>
-          <tr key={e.id} className="align-top hover:bg-slate-800/30">
-            <td className="whitespace-nowrap px-5 py-4 text-slate-400">{dateFmt(e.createdAt)}</td>
+      <div className="overflow-x-auto"><table className="data-table min-w-[740px]">
+        <thead><tr><th className="px-5 py-4">Fecha (Perú)</th><th className="px-4 py-4">Acción</th><th className="px-4 py-4">Responsable</th><th className="px-5 py-4">Destino / Cambios</th></tr></thead>
+        <tbody>{filtered.map(e =>
+          <tr key={e.id} className="align-top">
+            <td className="whitespace-nowrap px-5 py-4 text-xs text-slate-500">{dateFmt(e.createdAt)}</td>
             <td className="px-4 py-4 font-medium">{descriptions[e.action] || e.action}</td>
-            <td className="px-4 py-4 text-xs text-slate-400"><p>{e.actorRole}</p><p className="font-mono">{e.actorId?.slice(0, 14)}...</p></td>
-            <td className="px-5 py-4 text-xs text-slate-400"><p className="break-all">{e.targetType} · {e.targetId}</p>
-              {Object.keys(e.details || {}).length > 0 && <p className="mt-1 break-all">{JSON.stringify(e.details)}</p>}
+            <td className="px-4 py-4 text-xs text-slate-500"><span className="badge badge-neutral">{e.actorRole}</span><p className="mt-2 font-mono text-[10px]">{e.actorId?.slice(0, 14)}...</p></td>
+            <td className="px-5 py-4 text-xs text-slate-500"><p className="break-all">{e.targetType} · {e.targetId}</p>
+              {Object.keys(e.details || {}).length > 0 && <p className="mt-2 break-all rounded-lg bg-slate-50 p-2 font-mono text-[10px]">{JSON.stringify(e.details)}</p>}
             </td>
           </tr>
         )}</tbody>
       </table>
-      {loading && <p className="p-8 text-center text-slate-400">Cargando auditoría...</p>}
-      {!loading && filtered.length === 0 && <p className="p-8 text-center text-slate-400">No hay eventos que coincidan.</p>}
       </div>
+      {loading && <EmptyState loading title="Cargando auditoría..."/>}
+      {!loading && filtered.length === 0 && <EmptyState icon={ClipboardList} title="No hay eventos que coincidan" description="Los cambios administrativos se mostrarán en este espacio."/>}
     </section>
     <p className="text-xs text-slate-500">Esta bitácora registra acciones de usuarios y configuración desde la fase 8. Las ventas anteriores mantienen su historial de ventas e inventario. Una auditoría resistente a manipulaciones requiere almacenamiento y controles adicionales.</p>
   </div>;

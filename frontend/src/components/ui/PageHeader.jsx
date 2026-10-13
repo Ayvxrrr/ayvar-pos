@@ -1,12 +1,12 @@
-export default function PageHeader({ eyebrow = "AYVAR POS", title, description, children }) {
+export default function PageHeader({ eyebrow = "Gestión comercial", title, description, children }) {
   return (
-    <div className="mb-7 flex flex-wrap items-start justify-between gap-4">
-      <div>
-        <p className="text-xs font-semibold uppercase tracking-widest text-blue-400">{eyebrow}</p>
-        <h1 className="mt-2 text-3xl font-bold text-white">{title}</h1>
-        <p className="mt-2 text-sm text-slate-400">{description}</p>
+    <div className="page-header">
+      <div className="min-w-0">
+        <span className="eyebrow inline-flex items-center gap-2"><span className="h-1.5 w-4 rounded-full bg-brand-500" />{eyebrow}</span>
+        <h1>{title}</h1>
+        {description && <p>{description}</p>}
       </div>
-      {children}
+      {children && <div className="flex flex-wrap items-center gap-2">{children}</div>}
     </div>
   );
 }
