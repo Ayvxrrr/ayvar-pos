@@ -21,6 +21,8 @@ jobs:
         working-directory: backend
       - run: node --test
         working-directory: backend
+      - run: npm run test:vercel
+        working-directory: backend
   frontend:
     runs-on: ubuntu-latest
     steps:

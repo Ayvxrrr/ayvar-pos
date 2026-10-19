@@ -5,8 +5,10 @@
   "main": "index.js",
   "scripts": {
     "test": "node --test",
+    "test:vercel": "node --no-experimental-require-module --test",
     "dev": "node --watch src/server.js",
-    "start": "node src/server.js"
+    "start": "node src/server.js",
+    "postinstall": "node scripts/patch-jwks-rsa.js"
   },
   "keywords": [],
   "author": "",

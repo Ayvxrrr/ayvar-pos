@@ -22,6 +22,9 @@ directamente al campo de Vercel, sin comillas adicionales ni bloques Markdown.
 No lo pegues en chats, capturas, comandos, GitHub ni variables `VITE_*`.
 El archivo debe pertenecer al mismo proyecto que `FIREBASE_PROJECT_ID`.
 
+No es necesario activar `--experimental-require-module` en `NODE_OPTIONS`. Si lo configuraste
+como solución anterior, esta versión ya no depende de esa opción.
+
 Si necesitas una credencial exclusiva para el despliegue, usa una cuenta de servicio con los permisos
 necesarios de Firestore y Firebase Authentication; no concedas Owner o Editor como atajo.
 Una clave de cuenta de servicio otorga acceso administrativo: protege su uso y rótala si se expone.
@@ -46,6 +49,17 @@ Esto es necesario: si Root Directory sigue siendo `frontend`, Vercel no encontra
 El frontend usa `npm ci --include=dev` para instalar Vite y `@vitejs/plugin-react`, incluso con
 `NODE_ENV=production`. Son herramientas necesarias durante la compilación; no se sirve `node_modules`
 al navegador, solo los archivos generados en `dist`.
+
+El backend ejecuta automáticamente `backend/scripts/patch-jwks-rsa.js` durante `postinstall`.
+Este script no añade dependencias: valida la versión y las huellas SHA-256 antes de sustituir
+la carga síncrona de `jose` por `await import('jose')` en sus dos puntos de carga (utilidades y Passport).
+Conserva las versiones actuales de las bibliotecas criptográficas y no altera la validación de firmas.
+No uses `npm ci --ignore-scripts` para este servicio: impediría aplicar el parche.
+La instalación falla si el parche no puede aplicarse. Al actualizar `jwks-rsa`, revisa si el
+problema está corregido antes de retirar o actualizar el parche.
+
+`npm run test:vercel` en `backend` ejecuta las pruebas con `require(ESM)` desactivado como en
+Vercel, incluyendo salud, rechazo de tokens inválidos y verificación de firmas con claves efímeras.
 
 ## 3. Subir el código y desplegar
 
@@ -78,6 +92,11 @@ Sin SMTP el resto del sistema puede funcionar, pero las invitaciones no se envia
   dependencias de desarrollo necesarias para compilar. Sube la corrección y espera al nuevo despliegue.
 - **500 al arrancar:** revisa los Runtime Logs del backend. La cuenta JSON debe estar completa,
   ser válida y corresponder a `FIREBASE_PROJECT_ID`.
+- **`ERR_REQUIRE_ESM` de `jwks-rsa` al cargar `jose`:** comprueba que el nuevo despliegue incluya
+  el lockfile y `backend/scripts/patch-jwks-rsa.js`, y que sus Build Logs muestren
+  `jwks-rsa@4.1.0: compatibilidad ESM aplicada` durante `postinstall`.
+  Si está usando una instalación anterior, vuelve a desplegar sin caché.
+  No es un error del JSON de Firebase y no requiere desactivar la verificación de tokens.
 - **401 en `/api/me` sin sesión:** es correcto; la API exige un token Firebase válido.
 - **403 con sesión:** verifica el perfil, rol y negocio activo en Firestore, sin desactivar los controles de acceso.
 - **Solo cambiaste variables:** haz un nuevo despliegue para que las use.
@@ -85,3 +104,4 @@ Sin SMTP el resto del sistema puede funcionar, pero las invitaciones no se envia
 Documentación oficial: [Services](https://vercel.com/docs/services),
 [rutas de Services](https://vercel.com/docs/services/routing) y
 [Express en Vercel](https://vercel.com/docs/frameworks/backend/express).
+Problema de compatibilidad: [jwks-rsa #507](https://github.com/auth0/node-jwks-rsa/issues/507).

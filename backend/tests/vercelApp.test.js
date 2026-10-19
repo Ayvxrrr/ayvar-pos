@@ -45,3 +45,11 @@ test("una API inexistente devuelve 404, no la página de React", async () => {
   const response = await fetch(`${baseURL}/api/no-existe`);
   assert.equal(response.status, 404);
 });
+
+test("un token inválido sigue sin permitir el acceso a la API", async () => {
+  const response = await fetch(`${baseURL}/api/me`, {
+    headers: { Authorization: "Bearer token-invalido-de-prueba" },
+  });
+  assert.equal(response.status, 401);
+  assert.equal((await response.json()).error, "Tu sesión no es válida o ha expirado.");
+});
