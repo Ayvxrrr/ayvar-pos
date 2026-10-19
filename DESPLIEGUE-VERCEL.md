@@ -16,7 +16,7 @@ Abre tu proyecto de Vercel → **Settings → Environment Variables**. Para **Pr
 | `FRONTEND_URL` | `https://ayvar-pos.vercel.app` |
 | `FIREBASE_SERVICE_ACCOUNT_JSON` | El contenido JSON completo de tu cuenta de servicio Firebase Admin |
 
-Marca `FIREBASE_SERVICE_ACCOUNT_JSON` como **Sensitive**. Si ya tienes el archivo
+Marca `FIREBASE_SERVICE_ACCOUNT_JSON` como **Secret** (o **Sensitive**, según la interfaz). Si ya tienes el archivo
 `backend/secrets/firebase-service-account.json` para desarrollo, ábrelo localmente y copia su contenido
 directamente al campo de Vercel, sin comillas adicionales ni bloques Markdown.
 No lo pegues en chats, capturas, comandos, GitHub ni variables `VITE_*`.
@@ -35,13 +35,17 @@ preferiblemente con un proyecto Firebase de demostración separado. No compartas
 
 En **Settings → Build and Deployment**:
 
-1. Cambia **Root Directory** de `frontend` a la raíz del repositorio (`./`; si es un campo de texto, déjalo vacío).
+1. Borra el contenido de **Root Directory** y déjalo vacío para usar la raíz del repositorio; Vercel puede mostrar `./` como indicación.
 2. Selecciona **Application/Framework Preset: Services** si aparece el selector.
 3. Desactiva los overrides generales de Build Command, Install Command y Output Directory.
    Esos valores ya están definidos dentro de cada servicio en el `vercel.json` de la raíz.
 4. Guarda los cambios. No crees un segundo proyecto y no cambies el dominio existente.
 
 Esto es necesario: si Root Directory sigue siendo `frontend`, Vercel no encontrará el backend ni la configuración de Services.
+
+El frontend usa `npm ci --include=dev` para instalar Vite y `@vitejs/plugin-react`, incluso con
+`NODE_ENV=production`. Son herramientas necesarias durante la compilación; no se sirve `node_modules`
+al navegador, solo los archivos generados en `dist`.
 
 ## 3. Subir el código y desplegar
 
@@ -69,6 +73,9 @@ Sin SMTP el resto del sistema puede funcionar, pero las invitaciones no se envia
 ## Errores comunes
 
 - **404 en `/api/health`:** revisa Root Directory y que el nuevo despliegue incluya ambos servicios.
+- **`Cannot find package '@vitejs/plugin-react'` durante la compilación:** verifica que el servicio
+  frontend use `npm ci --include=dev`. Con `NODE_ENV=production`, `npm ci` sin esa opción omite las
+  dependencias de desarrollo necesarias para compilar. Sube la corrección y espera al nuevo despliegue.
 - **500 al arrancar:** revisa los Runtime Logs del backend. La cuenta JSON debe estar completa,
   ser válida y corresponder a `FIREBASE_PROJECT_ID`.
 - **401 en `/api/me` sin sesión:** es correcto; la API exige un token Firebase válido.

@@ -16,6 +16,10 @@ test("Vercel publica Express y Vite desde sus carpetas", () => {
   }
 });
 
+test("el frontend instala herramientas de compilación incluso con NODE_ENV=production", () => {
+  assert.equal(config.services.frontend.installCommand, "npm ci --include=dev");
+});
+
 test("la API se dirige primero a Express y el resto a React en el mismo dominio", () => {
   assert.deepEqual(config.rewrites, [
     { source: "/api/:path*", destination: { service: "backend" } },
