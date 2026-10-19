@@ -80,4 +80,8 @@ app.use((err, req, res, next) => {
   });
 });
 
-app.listen(PORT, () => console.log(`Ayvar POS API: http://localhost:${PORT}`));
+if (process.env.VERCEL !== "1") {
+  app.listen(PORT, () => console.log(`Ayvar POS API: http://localhost:${PORT}`));
+}
+
+export default app;
