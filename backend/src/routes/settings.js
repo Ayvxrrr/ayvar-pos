@@ -2,12 +2,14 @@ import { Router } from "express";
 import { db } from "../config/firebaseAdmin.js";
 import { FieldValue } from "firebase-admin/firestore";
 import { requireRole } from "../middleware/requireRole.js";
+import { restrictPublicDemoWrites } from "../middleware/publicDemo.js";
 import { asyncRoute, HttpError, validate } from "../utils/api.js";
 import { settingsSchema } from "../validators/adminSchemas.js";
 import { auditRef, auditEntry } from "../services/audit.js";
 
 const router = Router();
 router.use(requireRole("admin"));
+router.use(restrictPublicDemoWrites);
 
 const businessRef = req => db.collection("businesses").doc(req.account.businessId);
 

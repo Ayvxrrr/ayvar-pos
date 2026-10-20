@@ -12,6 +12,7 @@ const initial = { name: "", email: "", role: "cashier" };
 
 export default function UsersPage() {
   const { session } = useAuth();
+  const publicDemo = session.user.publicDemo === true;
   const [users, setUsers] = useState([]);
   const [form, setForm] = useState(initial);
   const [query, setQuery] = useState("");
@@ -90,7 +91,7 @@ export default function UsersPage() {
 
   return <div className="space-y-6">
     <PageHeader eyebrow="Un gran negocio, un gran equipo" title="Equipo y permisos" description="Invita trabajadores y administra sus permisos sin compartir contraseñas.">
-      <button onClick={() => { setOpen(v => !v); setError(""); }} className="btn btn-primary" aria-expanded={open}>
+      <button disabled={publicDemo} onClick={() => { setOpen(v => !v); setError(""); }} className="btn btn-primary" aria-expanded={open}>
         <UserPlus size={18}/> Invitar trabajador
       </button>
     </PageHeader>
@@ -137,7 +138,7 @@ export default function UsersPage() {
           </thead>
           <tbody>
             {filtered.map(user => {
-              const protectedUser = user.role === "admin" || user.uid === session.user.uid;
+              const protectedUser = publicDemo || user.role === "admin" || user.uid === session.user.uid;
               return <tr key={user.uid}>
                 <td className="px-5 py-4"><div className="flex items-center gap-3"><span className="section-icon size-9 rounded-full text-xs font-bold">{user.name?.charAt(0)?.toUpperCase()}</span><div><p className="font-semibold">{user.name}</p><p className="mt-1 text-[11px] font-normal text-slate-400">{user.email}</p></div></div></td>
                 <td className="px-4 py-4">{protectedUser ? <span className="badge badge-neutral"><Shield size={13}/>{roles[user.role] || user.role}</span> :

@@ -31,6 +31,7 @@ app.use(express.json({ limit: "50kb" }));
 
 app.get("/api/health", (req, res) => res.json({
   success: true, project: "Ayvar POS", message: "Backend funcionando correctamente",
+  capabilities: { publicDemo: 1 },
 }));
 
 app.get("/api/me", requireAuth, async (req, res, next) => {
@@ -42,6 +43,7 @@ app.get("/api/me", requireAuth, async (req, res, next) => {
     res.json({ success: true, user: {
       uid: req.account.uid, email: req.account.email, name: req.account.name,
       role: req.account.role,
+      publicDemo: req.account.publicDemo === true || doc.data().publicDemo === true,
     }, business: { id: doc.id, name: doc.data().name, currency: doc.data().currency } });
   } catch (error) { next(error); }
 });

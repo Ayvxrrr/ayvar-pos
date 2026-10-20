@@ -4,6 +4,7 @@ import { api } from "../services/api";
 import Notice from "../components/ui/Notice";
 import PageHeader from "../components/ui/PageHeader";
 import EmptyState from "../components/ui/EmptyState";
+import { useAuth } from "../context/AuthContext";
 
 const fields = [
   { key: "name", label: "Nombre comercial", maxLength: 120, required: true },
@@ -14,6 +15,8 @@ const fields = [
 const inputClass = "field";
 
 export default function BusinessSettingsPage() {
+  const { session } = useAuth();
+  const publicDemo = session.user.publicDemo === true;
   const [form, setForm] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -47,7 +50,7 @@ export default function BusinessSettingsPage() {
       <div className="flex items-center gap-3"><span className="section-icon"><Store size={20}/></span><div><h2 className="panel-title">Datos de la empresa</h2><p className="mt-1 text-xs text-slate-400">Información que identifica a tu negocio.</p></div></div>
       <div className="grid gap-5 sm:grid-cols-2">
         {fields.map(field => <label key={field.key} className="field-label space-y-2">{field.label}{field.required && " *"}
-          <input className={inputClass} required={field.required} maxLength={field.maxLength}
+          <input className={inputClass} disabled={publicDemo} required={field.required} maxLength={field.maxLength}
             value={form[field.key] || ""} onChange={e => setForm(v => ({ ...v, [field.key]: e.target.value }))}/>
         </label>)}
         <label className="field-label space-y-2">Moneda
@@ -56,13 +59,13 @@ export default function BusinessSettingsPage() {
         </label>
       </div>
       <label className="field-label space-y-2 border-t border-slate-100 pt-5">Mensaje de agradecimiento para tickets
-        <textarea className={inputClass} rows={3} maxLength={220} value={form.receiptFooter || ""}
+        <textarea className={inputClass} disabled={publicDemo} rows={3} maxLength={220} value={form.receiptFooter || ""}
           onChange={e => setForm(v => ({ ...v, receiptFooter: e.target.value }))} placeholder="Gracias por su compra"/>
       </label>
       <div className="flex gap-3 rounded-xl border border-brand-100 bg-brand-50/60 p-4 text-xs leading-relaxed text-slate-500">
         <Info size={18} className="shrink-0 text-brand-600"/><p>El RUC solo se valida por longitud, no se consulta SUNAT. Estos datos no convierten el ticket interno en comprobante electrónico válido.</p>
       </div>
-      <button disabled={saving} className="btn btn-primary"><Save size={17}/>{saving ? "Guardando..." : "Guardar configuración"}</button>
+      <button disabled={saving || publicDemo} className="btn btn-primary"><Save size={17}/>{saving ? "Guardando..." : publicDemo ? "Solo lectura en la demo pública" : "Guardar configuración"}</button>
     </form>
     <aside className="panel overflow-hidden">
       <div className="panel-heading"><h2 className="panel-title"><ReceiptText size={18}/> Tu identidad comercial</h2></div>

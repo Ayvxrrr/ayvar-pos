@@ -4,6 +4,7 @@ import { rateLimit } from "express-rate-limit";
 import { FieldValue } from "firebase-admin/firestore";
 import { db, adminAuth } from "../config/firebaseAdmin.js";
 import { requireRole } from "../middleware/requireRole.js";
+import { restrictPublicDemoWrites } from "../middleware/publicDemo.js";
 import { asyncRoute, HttpError, validate } from "../utils/api.js";
 import { inviteSchema, roleSchema, statusSchema } from "../validators/adminSchemas.js";
 import { emailInvitation, smtpReady } from "../services/invitationMailer.js";
@@ -11,6 +12,7 @@ import { auditEntry, auditRef } from "../services/audit.js";
 
 const router = Router();
 router.use(requireRole("admin"));
+router.use(restrictPublicDemoWrites);
 router.param("uid", (req, res, next, value) => {
   if (!/^[A-Za-z0-9_-]{6,128}$/.test(value)) {
     return res.status(400).json({ error: "UID inválido." });

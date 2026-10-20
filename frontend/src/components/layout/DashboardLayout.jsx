@@ -53,6 +53,9 @@ export default function DashboardLayout() {
       </header>
       <main id="main-content" tabIndex={-1} className="mx-auto w-full max-w-[1536px] flex-1 p-4 outline-none sm:p-6 xl:p-8">
         <Notice message={logoutError} />
+        {user.publicDemo && <div role="status" className="mb-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          <strong>Demo pública · Solo datos ficticios.</strong> Los cambios son compartidos entre visitantes. La gestión de usuarios y la configuración están protegidas. No ingreses datos personales ni reales.
+        </div>}
         <div key={pathname} className="page-enter"><Outlet /></div>
       </main>
       <footer className="mx-4 mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-slate-200/70 py-5 text-[10px] text-slate-400 sm:mx-6 xl:mx-8">

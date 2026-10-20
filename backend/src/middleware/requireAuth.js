@@ -57,6 +57,7 @@ export async function requireAuth(req, res, next) {
       name: profile.name,
       role: profile.role,
       businessId: profile.businessId,
+      publicDemo: profile.publicDemo === true,
     };
 
     next();

@@ -21,6 +21,7 @@ process.env.FIREBASE_SERVICE_ACCOUNT_JSON = JSON.stringify({
 });
 
 const { default: app } = await import("../src/server.js");
+const { adminAuth, db } = await import("../src/config/firebaseAdmin.js");
 const server = app.listen(0, "127.0.0.1");
 after(() => new Promise(resolve => server.close(resolve)));
 await once(server, "listening");
@@ -31,6 +32,11 @@ test("Express exportado para Vercel responde la salud en /api/health", async () 
   assert.equal(response.status, 200);
   assert.equal((await response.json()).success, true);
   assert.equal(response.headers.get("access-control-allow-origin"), process.env.FRONTEND_URL);
+});
+
+test("salud anuncia la protección necesaria para activar las cuentas públicas", async () => {
+  const response = await fetch(`${baseURL}/api/health`);
+  assert.equal((await response.json()).capabilities.publicDemo, 1);
 });
 
 for (const path of ["/api/me", "/api/products", "/api/customers", "/api/team", "/api/reports/summary"]) {
@@ -52,4 +58,29 @@ test("un token inválido sigue sin permitir el acceso a la API", async () => {
   });
   assert.equal(response.status, 401);
   assert.equal((await response.json()).error, "Tu sesión no es válida o ha expirado.");
+});
+
+test("los routers reales impiden operaciones sensibles incluso al administrador demo", async t => {
+  t.mock.method(adminAuth, "verifyIdToken", async () => ({ uid: "public-demo-fixture", email: "admin@ayvar-demo.test" }));
+  t.mock.method(adminAuth, "createUser", async () => { throw new Error("La demo nunca debe crear cuentas desde la API."); });
+  t.mock.method(db, "runTransaction", async () => { throw new Error("No debe escribir configuración."); });
+  t.mock.method(db, "collection", name => ({ doc: id => ({ get: async () => ({
+    exists: true, id,
+    data: () => name === "users"
+      ? { active: true, name: "Demo", role: "admin", businessId: "business-demo-fixture", publicDemo: false }
+      : { active: true, name: "Demo pública", currency: "PEN", publicDemo: true },
+  }) }) }));
+
+  const headers = { Authorization: "Bearer fixture-demo", "Content-Type": "application/json" };
+  for (const [method, path] of [["POST", "/api/team/invite"], ["POST", "/api/team/public-demo-other/resend"],
+    ["PATCH", "/api/team/public-demo-other/role"], ["PATCH", "/api/team/public-demo-other/status"], ["PUT", "/api/settings"]]) {
+    const response = await fetch(`${baseURL}${path}`, { method, headers, body: JSON.stringify({ publicDemo: false }) });
+    assert.equal(response.status, 403, path);
+    assert.equal((await response.json()).code, "PUBLIC_DEMO_READ_ONLY", path);
+  }
+  const me = await fetch(`${baseURL}/api/me`, { headers });
+  const session = await me.json();
+  assert.equal(me.status, 200);
+  assert.equal(session.user.publicDemo, true);
+  assert.equal(session.business.id, "business-demo-fixture");
 });

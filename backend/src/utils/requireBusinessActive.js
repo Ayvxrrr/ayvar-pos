@@ -6,6 +6,7 @@ export async function requireBusinessActive(req, res, next) {
     if (!snapshot.exists || snapshot.data().active !== true) {
       return res.status(403).json({ error: "Negocio inactivo o inexistente." });
     }
+    req.account.publicDemo = req.account.publicDemo === true || snapshot.data().publicDemo === true;
     next();
   } catch (error) { next(error); }
 }
